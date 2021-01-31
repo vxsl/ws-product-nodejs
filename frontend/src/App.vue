@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <RateLimitTester :intensityValue.sync="intensity"/>
+    <RateLimitTester/>
   </div>
 </template>
 
@@ -11,7 +11,6 @@ export default {
   name: 'App',
   data() {
     return {
-      intensity: Number
     }
   },
   components: {
@@ -32,6 +31,10 @@ export default {
   margin-top: 60px;
   min-height:100vh;
   padding:5vh;
+}
+
+.monospace {
+  font-family:'Source Code Pro', 'Courier New', Courier, monospace
 }
 
 
