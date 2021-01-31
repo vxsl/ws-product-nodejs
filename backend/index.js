@@ -8,11 +8,15 @@ const pool = new pg.Pool()
 
 const queryHandler = (req, res, next) => {
   pool.query(req.sqlQuery).then((r) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
     return res.json(r.rows || [])
   }).catch(next)
 }
 
 app.get('/', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET');
   res.send('Welcome to EQ Works 😎')
 })
 
