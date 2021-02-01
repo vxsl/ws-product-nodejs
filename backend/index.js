@@ -1,23 +1,56 @@
 const express = require('express')
 const pg = require('pg')
-
+const { credentials } = require('./pgCredentials.js')
 const app = express()
 // configs come from standard PostgreSQL env vars
 // https://www.postgresql.org/docs/9.6/static/libpq-envars.html
-const pool = new pg.Pool()
+const pool = new pg.Pool(credentials)
+var ipMap = new Map()
+
+const THROTTLE_MAX_REQUESTS = 3
+const THROTTLE_WINDOW = 5000
 
 const queryHandler = (req, res, next) => {
-  pool.query(req.sqlQuery).then((r) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET');
-    return res.json(r.rows || [])
-  }).catch(next)
+  addCorsHeaders(res)
+  if (accept(req)) {
+    pool.query(req.sqlQuery).then((r) => {
+      return res.json(r.rows || [])
+    }).catch(next)
+  }
 }
 
-app.get('/', (req, res) => {
+accept = (req) => {
+  let timestamp = Date.now()
+  //let ip = req.headers['x-forwarded-for']
+  let ip = req.ip
+  let queryLog = ipMap.get(ip)
+  if (!queryLog || timestamp - queryLog[0] > THROTTLE_WINDOW) {
+    ipMap.set(ip, [timestamp])
+  }
+  else if (queryLog.length < THROTTLE_MAX_REQUESTS) {
+    queryLog.push(timestamp)
+  }
+  else return false
+
+  /* console.log(queryLog)
+  console.log(ipMap.get(ip)) */
+  return true
+}
+
+addCorsHeaders = (res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET');
-  res.send('Welcome to EQ Works 😎')
+} 
+
+app.get('/', (req, res) => {
+  addCorsHeaders(res)
+  if (accept(req)) {
+    res.send('Welcome to EQ Works 😎')
+  }
+  else {
+    res.status(429)
+    res.send()
+  }
 })
 
 app.get('/events/hourly', (req, res, next) => {
