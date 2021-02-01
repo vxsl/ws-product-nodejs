@@ -3,20 +3,47 @@
         <b-col cols="8">
             <div id='left-column'>
                 <b-progress id="intensity">
-                    <span v-if="selected.length == 0" class="progress-overlay"><strong>Please select endpoints to test.</strong></span>
-                    <div v-else class="progress-overlay" :class="intensityClass">
+                    <span 
+                    v-if="selectedEndpoints.length == 0" 
+                    class="progress-overlay"
+                    >
+                        <strong>Please select endpoints to test.</strong>
+                    </span>
+
+                    <div 
+                    v-else 
+                    class="progress-overlay" 
+                    :class="intensityClass"
+                    >
                         <h1>{{ totalRequestsPerTestPeriod }}</h1>
                         <span>total requests per {{parseInt(testPeriod / 1000)}} seconds (approximate)</span>
                     </div>
-                    <b-progress-bar :value="intensityValue" id="intensity-bar" :class="intensityClass">
-                    </b-progress-bar>
+
+                    <b-progress-bar 
+                    :value="intensityValue" 
+                    id="intensity-bar" 
+                    :class="intensityClass"
+                    />
                 </b-progress>
-                <div id="table-container" class="d-flex justify-content-center align-items-center">
-                    <div v-if="breaking" id="table-overlay" class="monospace d-flex justify-content-center align-items-center">
-                        <span>TEST COMPLETE: {{testResults}}</span>
-                        <span id="overlay-subtitle">{{breakCountdown}} s until next test</span>
+                <div 
+                id="table-container" 
+                class="d-flex justify-content-center align-items-center"
+                >
+                    <div 
+                    v-if="paused" 
+                    id="table-overlay" 
+                    class="monospace d-flex justify-content-center align-items-center"
+                    >
+                        <span id="test-results"><strong>TEST COMPLETE.</strong>{{'\n' + testResults}}</span>
                     </div>
-                    <b-table-simple small id="response-table" class="monospace" :class="breaking? 'break' : null">
+
+                    <b-table-simple 
+                    fixed 
+                    small 
+                    id="response-table" 
+                    class="monospace" 
+                    :class="paused? 'break' : null"
+                    >
                         <b-thead>
                             <b-tr>
                                 <b-th>URI</b-th>
@@ -24,25 +51,27 @@
                                 <b-th>RESPONSES</b-th>
                                 <b-th>200</b-th>
                                 <b-th>429</b-th>
+                                <b-th>429 (GLOBAL)</b-th>
+                                <b-th>OTHER</b-th>
                             </b-tr>
                         </b-thead>
                         <b-tbody>
-                            <b-tr v-for="(obj, uri) in activity" :key="uri">
+                            <b-tr v-for="(obj, uri) in activityRecords" :key="uri">
                                 <b-td>{{uri}}</b-td>
                                 <b-td>{{obj.reqCount}}</b-td>
                                 <b-td>{{obj.resCount}}</b-td>
-                                <!-- <b-td>{{obj.req > 0? obj.res : null}}</b-td> -->
-                                <!-- <b-td>{{obj.req > 0? (100 * obj.successes / obj.res).toFixed(2) + '%' : null}}</b-td> -->
                                 <b-td>{{successString(obj)}}</b-td>
                                 <b-td>{{rejectionString(obj)}}</b-td>
+                                <b-td>{{globalRejectionString(obj)}}</b-td>
+                                <b-td>{{obj.otherCount}}</b-td>
                             </b-tr>
                         </b-tbody>
                     </b-table-simple>
                 </div>
-                <b-progress v-show="!breaking">
+                <b-progress>
                     <b-progress-bar 
-                    :value="testChronoProgress" 
-                    :label="testSecondsRemaining"
+                    :value="testChronoProgress"
+                    :label="paused? breakCountdown + ' s until next test' : testSecondsRemaining" 
                     />
                 </b-progress>
             </div>
@@ -63,14 +92,14 @@
             <div>
                 <span class="control-label">Individual request frequency</span>
                 <b-form-input 
-                    v-model="requestsPerTestPeriod" 
+                    v-model="requestsPerThrottleWindow" 
                     type="range"
-                    :min="minRequestsPerTestPeriod"
-                    :max="maxRequestsPerTestPeriod"
+                    :min="minRequestsPerThrottleWindow"
+                    :max="maxRequestsPerThrottleWindow"
                 />
                 <div class="d-block">
-                    <h2 style="display:inline">{{requestsPerTestPeriod + ' '}}</h2>
-                    <span class="control-detail" style="display:inline-block"> per {{parseInt(testPeriod / 1000)}} s</span>
+                    <h2 style="display:inline">{{requestsPerThrottleWindow + ' '}}</h2>
+                    <span class="control-detail"> per {{parseInt(throttleWindow / 1000)}} s</span>
                 </div>
                 <span class="control-detail">{{'[' + parseFloat(requestInterval / 1000).toFixed(2)}} s break between requests]</span>
             </div>
@@ -80,69 +109,71 @@
 </template>
 
 <script>
-// eslint-disable-next-line
 const axios = require('axios')
 //const apiBase = 'https://api.kylegrimsrudma.nz'
-// eslint-disable-next-line
 const apiBase = 'http://localhost:5555'
 
 export default {    
     name:'RateLimitTester',
     data() {
         return {
-            breaking:false,
+            paused:false,
             breakCountdown:Number,
-            testPeriod:30000,
+            testPeriod:6000,
             testStartedAt:Number,
             testChronoProgress:0,
             breakLength:7000,
-            requestsPerTestPeriod:10,
-            minRequestsPerTestPeriod:1,
-            maxRequestsPerTestPeriod:150,
+            throttleWindow:5000,
+            requestsPerThrottleWindow:6,
+            minRequestsPerThrottleWindow:1,
+            maxRequestsPerThrottleWindow:10,
             options: [
-                { text: 'Dummy', value: '/', checked:true },
-                { text: 'POI', value: '/poi', checked:false },
+                { text: 'POI', value: '/poi', checked:true },
                 { text: 'Hourly Events', value: '/events/hourly', checked:false },
                 { text: 'Daily Events', value: '/events/daily', checked:false },
-                { text: 'Hourly Statistics', value: '/stats/hourly', checked:false },
-                { text: 'Daily Statistics', value: '/stats/daily', checked:false }
+                { text: 'Hourly Statistics', value: '/stats/hourly', checked:true },
+                { text: 'Daily Statistics', value: '/stats/daily', checked:true }
             ],
-            activity: {
-                '/':{
-                    reqCount:0,
-                    resCount:0,
-                    successes:0,
-                    rejections:0
-                },
+            activityRecords: {
                 '/poi':{
                     reqCount:0,
                     resCount:0,
                     successes:0,
-                    rejections:0
+                    rejections:0,
+                    globalRejections:0,
+                    otherCount:0
                 },
                 '/events/hourly':{
                     reqCount:0,
                     resCount:0,
                     successes:0,
-                    rejections:0
+                    rejections:0,
+                    globalRejections:0,
+                    otherCount:0
                 },
                 '/events/daily':{
                     reqCount:0,
                     resCount:0,
                     successes:0,
-                    rejections:0
+                    rejections:0,
+                    globalRejections:0,
+                    otherCount:0
                 },
                 '/stats/hourly':{
                     reqCount:0,
                     resCount:0,
                     successes:0,
-                    rejections:0
+                    rejections:0,
+                    globalRejections:0,
+                    otherCount:0
                 },
                 '/stats/daily':{
                     reqCount:0,
                     resCount:0,
                     successes:0,
-                    rejections:0
+                    rejections:0,
+                    globalRejections:0,
+                    otherCount:0
                 }
             }
         }
@@ -157,32 +188,30 @@ export default {
             return result
         },
         testResults() {
-            let result = 'in ' + parseInt(this.testPeriod / 1000) + ' seconds, ' 
-            let blockedSum = 0
-            let reqSum = 0
-            for (let uri in this.activity) {
-                reqSum += this.activity[uri].reqCount
-                blockedSum += this.activity[uri].rejections
+            let result = 'Within a period of ' + parseInt(this.testPeriod / 1000) + ' seconds:\n\n' 
+            let attributes = ['reqCount', 'resCount', 'successes', 'rejections', 'globalRejections']
+            let sums = attributes.reduce((sum,name)=> (sum[name]='',sum),{});
+            for (let i = 0; i < attributes.length; i++) {
+                sums[attributes[i]] = (Object.values(this.activityRecords).map(obj => obj[attributes[i]]).reduce((sum, obj) => sum + obj))
             }
-            result += reqSum + ' requests made and '
-            result += parseInt(100 * blockedSum / reqSum) + '% rejected'
+            result += '- ' + sums['reqCount'] + ' requests, ' + sums['resCount'] + ' responses\n'
+            result += '- ' + sums['successes'] +' accepted, ' + parseInt(sums['rejections'] + sums['globalRejections']) + ' rejected\n'
+            result += '- ' + sums['rejections'] + ' rejected due to per-endpoint rate limit\n'
+            result += '- ' + sums['globalRejections'] + ' rejected due to overall rate limit'
             return result
         },
-        requestFrequency() {
-            return this.requestInterval
-        },
         requestInterval() {
-            return parseInt(this.testPeriod / this.requestsPerTestPeriod)
+            return parseInt(this.throttleWindow / this.requestsPerThrottleWindow)
         },
-        selected() {
+        selectedEndpoints() {
             return this.options.filter((obj) => obj.checked)
         },  
         totalRequestsPerTestPeriod() {
-            return parseInt(this.requestsPerTestPeriod * this.selected.length)
+            return parseInt(this.testPeriod / this.throttleWindow * this.requestsPerThrottleWindow * this.selectedEndpoints.length)
         },
         intensityValue() {
-            return 100 * (this.requestsPerTestPeriod * this.selected.length) / (this.maxRequestsPerTestPeriod * this.options.length)
-            //return 1000 / this.minRequestsPerTestPeriod * this.requestsPerTestPeriod / this.options.length
+            let max = this.testPeriod / this.throttleWindow  * this.maxRequestsPerThrottleWindow * this.options.length
+            return 100 * this.totalRequestsPerTestPeriod / max
         },
         intensityClass() {
             if (this.intensityValue > 80) {
@@ -202,10 +231,82 @@ export default {
     },
     async mounted() {
         setInterval(this.updateTime.bind(this), 1000)
-        this.testing = true
-        this.doTest()
+        let testing = true
+        for (;;) {
+            setTimeout(function() {
+                testing = false
+            }, this.testPeriod)
+            this.testStartedAt = Date.now()
+            while(testing) {
+                for (let i in this.selectedEndpoints) {
+                    let uri = this.selectedEndpoints[i].value
+                    this.makeRequest(uri)
+                }
+                await this.sleep(this.requestInterval)
+            }
+            if (this.selectedEndpoints.length > 0) {
+                await this.pause()
+            }
+            this.resetActivityRecords()
+            testing = true
+        }
     },
     methods: {
+        makeRequest(uri) {
+            let obj = this.activityRecords[uri]
+            obj.reqCount++
+            axios.get(apiBase + uri).then((r) => {
+                obj.resCount++
+                r.status == 200? obj.successes++ : null
+            }).catch((err) => {
+                obj.resCount++
+                if (err.response.data.includes('Overall')) {
+                    obj.rejections++
+                }
+                else if (err.response.data.includes('endpoint')) {
+                    obj.globalRejections++
+                }
+                else {
+                    obj.otherCount++
+                }
+            })
+        },
+        resetActivityRecords() {
+            for (let key in this.activityRecords) {
+                this.activityRecords[key] = {
+                    reqCount:0,
+                    resCount:0,
+                    successes:0,
+                    rejections:0,
+                    globalRejections:0,
+                    otherCount:0
+                }
+            }
+        },
+        async pause() {
+            // the redundancy here is due to a quirk in Vue wherein the value of the member attribute cannot be changed in the block
+            // will attempt to address later
+            this.paused = true
+            let stayPaused = true
+            setTimeout(function() {
+                stayPaused = false
+            }, this.breakLength)
+            this.breakCountdown = parseInt(this.breakLength / 1000)
+            while (stayPaused) {
+                this.breakCountdown--
+                await this.sleep(1000) 
+            }
+            this.paused = false
+        },
+        async sleep(ms) {
+            await new Promise(r => setTimeout(r, ms));
+        },
+        updateTime() {
+            let now = Date.now()
+            if (!this.paused) {
+                this.testChronoProgress = 100 * (now - this.testStartedAt) / this.testPeriod
+            }
+        },
         successString(obj) {
             if (obj.reqCount > 0) {
                 if (obj.resCount > 0) {
@@ -224,71 +325,15 @@ export default {
             }
             else return null
         },
-        updateTime() {
-            let now = Date.now()
-            if (!this.breaking) {
-                this.testChronoProgress = 100 * (now - this.testStartedAt) / this.testPeriod 
-            }
-        },
-        async doBreak() {
-            this.breaking = true
-            let inBreak = true
-            setTimeout(function() {
-                inBreak = false
-            }, this.breakLength)
-            this.breakCountdown = parseInt(this.breakLength / 1000)
-            while (inBreak) {
-                this.breakCountdown--
-                await this.sleep(1000) 
-            }
-            this.breaking = false
-        },
-        async doTest() {
-            let testing = true
-            for (;;) {
-                setTimeout(function() {
-                    testing = false
-                }, this.testPeriod)
-                this.testStartedAt = Date.now()
-                while(testing) {
-                    for (let i in this.selected) {
-                        let uri = this.selected[i].value
-                        this.makeRequest(uri)
-                    }
-                    await this.sleep(this.requestInterval)
+        globalRejectionString(obj) {
+            if (obj.reqCount > 0) {
+                if (obj.resCount > 0) {
+                    return obj.globalRejections + ' (' + parseInt(100 * obj.globalRejections / obj.reqCount) + '%)'
                 }
-                if (this.selected.length > 0) {
-                    await this.doBreak()
-                }
-                this.clearActivity()
-                testing = true
+                else return '0'
             }
+            else return null
         },
-        clearActivity() {
-            for (let key in this.activity) {
-                this.activity[key] = {
-                    reqCount:0,
-                    resCount:0,
-                    successes:0,
-                    rejections:0
-                }
-            }
-        },
-        makeRequest(uri) {
-            let obj = this.activity[uri]
-            obj.reqCount++
-            axios.get(apiBase + uri).then((r) => {
-                obj.resCount++
-                r.status == 200? obj.successes++ : null
-            }).catch((err) => {
-                obj.resCount++
-                obj.rejections++
-                console.log(err)
-            })
-        },
-        async sleep(ms) {
-            await new Promise(r => setTimeout(r, ms));
-        }
     }
 }
 
@@ -314,11 +359,11 @@ export default {
                 position:absolute;
                 width:60%;
                 min-height:100%;
-                font-size:1.15em;
                 flex-wrap:wrap;
-                #overlay-subtitle {
-                    font-size:0.9em;
-                    font-style:italic;
+                #test-results {
+                    white-space:pre-line;
+                    display:block;
+                    text-align:left
                 }
             }
             
