@@ -82,11 +82,11 @@
                 <b-form-checkbox
                     class="query-checkbox" 
                     v-for="option in options" 
-                    :key="option.text" 
+                    :key="option.title" 
                     v-model="option.checked" 
                     button
                 >
-                    {{ option.text }}
+                    {{ option.title }}
                 </b-form-checkbox>
             </b-card>
             <div>
@@ -115,11 +115,14 @@ const apiBase = 'http://localhost:5555'
 
 export default {    
     name:'RateLimitTester',
+    props: {
+        endpoints:Array
+    },
     data() {
         return {
             paused:false,
             breakCountdown:Number,
-            testPeriod:6000,
+            testPeriod:20000,
             testStartedAt:Number,
             testChronoProgress:0,
             breakLength:7000,
@@ -127,59 +130,25 @@ export default {
             requestsPerThrottleWindow:6,
             minRequestsPerThrottleWindow:1,
             maxRequestsPerThrottleWindow:10,
-            options: [
-                { text: 'POI', value: '/poi', checked:true },
-                { text: 'Hourly Events', value: '/events/hourly', checked:false },
-                { text: 'Daily Events', value: '/events/daily', checked:false },
-                { text: 'Hourly Statistics', value: '/stats/hourly', checked:true },
-                { text: 'Daily Statistics', value: '/stats/daily', checked:true }
-            ],
-            activityRecords: {
-                '/poi':{
-                    reqCount:0,
-                    resCount:0,
-                    successes:0,
-                    rejections:0,
-                    globalRejections:0,
-                    otherCount:0
-                },
-                '/events/hourly':{
-                    reqCount:0,
-                    resCount:0,
-                    successes:0,
-                    rejections:0,
-                    globalRejections:0,
-                    otherCount:0
-                },
-                '/events/daily':{
-                    reqCount:0,
-                    resCount:0,
-                    successes:0,
-                    rejections:0,
-                    globalRejections:0,
-                    otherCount:0
-                },
-                '/stats/hourly':{
-                    reqCount:0,
-                    resCount:0,
-                    successes:0,
-                    rejections:0,
-                    globalRejections:0,
-                    otherCount:0
-                },
-                '/stats/daily':{
-                    reqCount:0,
-                    resCount:0,
-                    successes:0,
-                    rejections:0,
-                    globalRejections:0,
-                    otherCount:0
+            options:this.endpoints.reduce((result, obj) => {
+                let el = {...obj}
+                if (obj.uri =='/poi'
+                || obj.uri == '/events/hourly' 
+                || obj.uri =='/stats/daily') {
+                    el.checked = true
                 }
-            }
+                else {
+                    el.checked = false
+                }
+                result.push(el)
+                return result
+            }, []),
+            activityRecords:this.initializeActivityRecords()
         }
     },
     computed: {
         testSecondsRemaining() {
+            console.dir(this.endpoints.map(obj => obj.uri))
             let result = parseInt(this.testPeriod * (1 - (0.01 * this.testChronoProgress)) / 1000)
             if (result < 10) {
                 result = '0' + result
@@ -239,7 +208,7 @@ export default {
             this.testStartedAt = Date.now()
             while(testing) {
                 for (let i in this.selectedEndpoints) {
-                    let uri = this.selectedEndpoints[i].value
+                    let uri = this.selectedEndpoints[i].uri
                     this.makeRequest(uri)
                 }
                 await this.sleep(this.requestInterval)
@@ -252,6 +221,20 @@ export default {
         }
     },
     methods: {
+        initializeActivityRecords() {
+            let result = {}
+            for (let uri of this.endpoints.map(obj => obj.uri)) {
+                result[uri] = {
+                    reqCount:0,
+                    resCount:0,
+                    successes:0,
+                    rejections:0,
+                    globalRejections:0,
+                    otherCount:0
+                }
+            }
+            return result
+        },
         makeRequest(uri) {
             let obj = this.activityRecords[uri]
             obj.reqCount++

@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <RateLimitTester/>
+    <RateLimitTester :endpoints="endpoints"/>
   </div>
 </template>
 
@@ -11,6 +11,13 @@ export default {
   name: 'App',
   data() {
     return {
+      endpoints: [
+        { title: 'POI', uri: '/poi' },
+        { title: 'Hourly Events', uri: '/events/hourly' },
+        { title: 'Daily Events', uri: '/events/daily' },
+        { title: 'Hourly Statistics', uri: '/stats/hourly' },
+        { title: 'Daily Statistics', uri: '/stats/daily' }
+      ]
     }
   },
   components: {
