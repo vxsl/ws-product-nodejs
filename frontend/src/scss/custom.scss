@@ -26,3 +26,17 @@ $theme-colors: (
   "positive": $positive-color,
   "insane": $insane-color
 );
+
+:export {
+  primaryColor: $primary-color;
+  secondaryColor: $secondary-color;
+  dangerColor: $danger-color;
+  lightColor: $light-color;
+  darkColor: $dark-color;
+  greyColor: $grey-color;
+  lightGreyColor: $light-grey-color;
+  darkGreyColor: $dark-grey-color;
+  infoColor: $info-color;
+  positiveColor: $positive-color;
+  insaneColor: $insane-color;
+}

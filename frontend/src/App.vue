@@ -1,27 +1,56 @@
 <template>
   <div id="app">
-    <RateLimitTester :endpoints="endpoints"/>
+    <ChartArea :endpoints="endpoints"/>
+    <RateLimitTester v-if="false" :endpoints="endpoints"/>
   </div>
 </template>
 
 <script>
-import RateLimitTester from './components/RateLimitTester.vue'
+import ChartArea from '@/components/ChartArea.vue'
+import RateLimitTester from '@/components/RateLimitTester.vue'
 
 export default {
   name: 'App',
   data() {
     return {
       endpoints: [
-        { title: 'POI', uri: '/poi' },
-        { title: 'Hourly Events', uri: '/events/hourly' },
-        { title: 'Daily Events', uri: '/events/daily' },
-        { title: 'Hourly Statistics', uri: '/stats/hourly' },
-        { title: 'Daily Statistics', uri: '/stats/daily' }
+        { 
+          title: 'POI', 
+          uri: '/poi',
+          chartType:'line',
+          xAxis:'' 
+        },
+        {
+          title: 'Hourly Events', 
+          uri: '/events/hourly',
+          chartType:'line',
+          xAxis:'hour' 
+           
+        },
+        { 
+          title: 'Daily Events', 
+          uri: '/events/daily',
+          chartType:'line',
+          xAxis:'date'  
+        },
+        { 
+          title: 'Hourly Statistics', 
+          uri: '/stats/hourly',
+          chartType:'line',
+          xAxis:'hour' 
+        },
+        { 
+          title: 'Daily Statistics', 
+          uri: '/stats/daily',
+          chartType:'line',
+          xAxis:'date' 
+        }
       ]
     }
   },
   components: {
-    RateLimitTester
+    ChartArea,
+    RateLimitTester,
   },
 }
 </script>
@@ -35,9 +64,8 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
   min-height:100vh;
-  padding:5vh;
+  //padding:5vh;
 }
 
 .monospace {
