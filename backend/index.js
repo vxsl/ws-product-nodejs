@@ -1,7 +1,8 @@
 const express = require('express')
 const pg = require('pg')
 const { credentials } = require('./pgCredentials.js')
-const { THROTTLE_MAX_REQUESTS, THROTTLE_WINDOW_MS, LENIENCY_MS } = require('./config.js')
+const config = require('./config')
+const { endpoints } = require('./endpoints')
 const app = express()
 const pool = new pg.Pool(credentials)
 
@@ -9,7 +10,7 @@ var ipMap = new Map()
 
 const queryHandler = (req, res, next) => {
   addCorsHeaders(res)
-  if (accept(req)) {
+  if (accept(req, res)) {
     pool.query(req.sqlQuery).then((r) => {
       return res.json(r.rows || [])
     }).catch(next)
@@ -17,28 +18,16 @@ const queryHandler = (req, res, next) => {
 }
 
 accept = (req) => {
-  console.log("\n==================================")
   let timestamp = Date.now()
   let ip = req.ip
   let queryLog = ipMap.get(ip)
-  try {
-    console.log(queryLog.length + ' in queue')
-  }
-  catch { 
-    console.log('creating queue for ' + ip + '...')
-  }
-  if (!queryLog || timestamp - queryLog[0] > THROTTLE_WINDOW_MS - LENIENCY_MS) {
-    console.log('0 -> 1')
+  if (!queryLog || timestamp - queryLog[0] > config.THROTTLE_WINDOW_MS - config.LENIENCY_MS) {
     ipMap.set(ip, [timestamp])
   }
-  else if (queryLog.length < THROTTLE_MAX_REQUESTS) {
-    console.log(queryLog.length + " -> " + parseInt(queryLog.length + 1))
+  else if (queryLog.length < config.THROTTLE_MAX_REQUESTS) {
     queryLog.push(timestamp)
   }
-  else {
-    console.log(parseFloat((timestamp - queryLog[0]  - THROTTLE_WINDOW_MS) / 1000).toFixed(3) + ' s difference, ' + queryLog.length + ', rejecting')
-    return false
-  }
+  else return false
   return true
 }
 
@@ -116,7 +105,7 @@ app.listen(process.env.PORT || 5555, (err) => {
     console.error(err)
     process.exit(1)
   } else {
-    console.log(`Running on ${process.env.PORT || 5555}`)
+    console.log(`Running on ${process.env.PORT || config.CUSTOM_PORT}`)
   }
 })
 
