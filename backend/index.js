@@ -7,6 +7,10 @@ const app = express()
 const pool = new pg.Pool(credentials)
 
 var ipMap = new Map()
+var endpointMap = new Map()
+for (let e of endpoints) {
+  endpointMap.set(e.uri, e.query)
+}
 
 const queryHandler = (req, res, next) => {
   addCorsHeaders(res)
@@ -17,7 +21,12 @@ const queryHandler = (req, res, next) => {
   }
 }
 
-accept = (req) => {
+addCorsHeaders = (res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET');
+} 
+
+accept = (req, res) => {
   let timestamp = Date.now()
   let ip = req.ip
   let queryLog = ipMap.get(ip)
@@ -27,80 +36,21 @@ accept = (req) => {
   else if (queryLog.length < config.THROTTLE_MAX_REQUESTS) {
     queryLog.push(timestamp)
   }
-  else return false
-  return true
-}
-
-addCorsHeaders = (res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET');
-} 
-
-app.get('/', (req, res) => {
-  addCorsHeaders(res)
-  if (accept(req)) {
-    res.send('Welcome to EQ Works 😎')
-  }
   else {
     res.status(429)
     res.send()
+    return false
   }
-})
+  return true
+}
 
-app.get('/events/hourly', (req, res, next) => {
-  req.sqlQuery = `
-    SELECT date, hour, events
-    FROM public.hourly_events
-    ORDER BY date, hour
-    LIMIT 168;
-  `
+app.get('*', (req, res, next) => {
+  addCorsHeaders(res)
+  req.sqlQuery = endpointMap.get(req.url)
   return next()
 }, queryHandler)
 
-app.get('/events/daily', (req, res, next) => {
-  req.sqlQuery = `
-    SELECT date, SUM(events) AS events
-    FROM public.hourly_events
-    GROUP BY date
-    ORDER BY date
-    LIMIT 7;
-  `
-  return next()
-}, queryHandler)
-
-app.get('/stats/hourly', (req, res, next) => {
-  req.sqlQuery = `
-    SELECT date, hour, impressions, clicks, revenue
-    FROM public.hourly_stats
-    ORDER BY date, hour
-    LIMIT 168;
-  `
-  return next()
-}, queryHandler)
-
-app.get('/stats/daily', (req, res, next) => {
-  req.sqlQuery = `
-    SELECT date,
-        SUM(impressions) AS impressions,
-        SUM(clicks) AS clicks,
-        SUM(revenue) AS revenue
-    FROM public.hourly_stats
-    GROUP BY date
-    ORDER BY date
-    LIMIT 7;
-  `
-  return next()
-}, queryHandler)
-
-app.get('/poi', (req, res, next) => {
-  req.sqlQuery = `
-    SELECT *
-    FROM public.poi;
-  `
-  return next()
-}, queryHandler)
-
-app.listen(process.env.PORT || 5555, (err) => {
+app.listen(process.env.PORT || config.CUSTOM_PORT, (err) => {
   if (err) {
     console.error(err)
     process.exit(1)
