@@ -7,10 +7,6 @@ const app = express()
 const pool = new pg.Pool(credentials)
 
 var ipMap = new Map()
-var endpointMap = new Map()
-for (let e of endpoints) {
-  endpointMap.set(e.uri, e.query)
-}
 
 const queryHandler = (req, res, next) => {
   addCorsHeaders(res)
@@ -44,9 +40,9 @@ accept = (req, res) => {
   return true
 }
 
-app.get('*', (req, res, next) => {
+app.get('/:category/:specification?', (req, res, next) => {
   addCorsHeaders(res)
-  req.sqlQuery = endpointMap.get(req.url)
+  req.sqlQuery = req.params.specification? endpoints[req.params.category][req.params.specification] : endpoints[req.params.category] 
   return next()
 }, queryHandler)
 
