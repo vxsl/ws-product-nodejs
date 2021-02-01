@@ -5,8 +5,8 @@
                 <b-progress id="intensity">
                     <span v-if="selected.length == 0" class="progress-overlay"><strong>Please select endpoints to test.</strong></span>
                     <div v-else class="progress-overlay" :class="intensityClass">
-                        <h1>{{ requestsPerSecond }}</h1>
-                        <span>total requests per second</span>
+                        <h1>{{ totalRequestsPerTestPeriod }}</h1>
+                        <span>total requests per {{parseInt(testPeriod / 1000)}} seconds (approximate)</span>
                     </div>
                     <b-progress-bar :value="intensityValue" id="intensity-bar" :class="intensityClass">
                     </b-progress-bar>
@@ -21,21 +21,30 @@
                             <b-tr>
                                 <b-th>URI</b-th>
                                 <b-th>REQUESTS</b-th>
-                                <b-th>SUCCESSES</b-th>
-                                <b-th>REJECTIONS</b-th>
+                                <b-th>RESPONSES</b-th>
+                                <b-th>200</b-th>
+                                <b-th>429</b-th>
                             </b-tr>
                         </b-thead>
                         <b-tbody>
                             <b-tr v-for="(obj, uri) in activity" :key="uri">
                                 <b-td>{{uri}}</b-td>
-                                <b-td>{{obj.req}}</b-td>
+                                <b-td>{{obj.reqCount}}</b-td>
+                                <b-td>{{obj.resCount}}</b-td>
                                 <!-- <b-td>{{obj.req > 0? obj.res : null}}</b-td> -->
-                                <b-td>{{obj.req > 0? (100 * obj.successes / obj.res).toFixed(2) + '%' : null}}</b-td>
-                                <b-td>{{obj.req > 0? ((100 * (obj.res - obj.successes) / obj.req).toFixed(2) + '%') : null}}</b-td>
+                                <!-- <b-td>{{obj.req > 0? (100 * obj.successes / obj.res).toFixed(2) + '%' : null}}</b-td> -->
+                                <b-td>{{successString(obj)}}</b-td>
+                                <b-td>{{rejectionString(obj)}}</b-td>
                             </b-tr>
                         </b-tbody>
                     </b-table-simple>
                 </div>
+                <b-progress v-show="!breaking">
+                    <b-progress-bar 
+                    :value="testChronoProgress" 
+                    :label="testSecondsRemaining"
+                    />
+                </b-progress>
             </div>
         </b-col>
         <b-col id="control-box">
@@ -54,17 +63,16 @@
             <div>
                 <span class="control-label">Individual request frequency</span>
                 <b-form-input 
-                    v-model="requestInterval" 
+                    v-model="requestsPerTestPeriod" 
                     type="range"
-                    :min="minRequestInterval"
-                    :max="maxRequestInterval"
-                    style="direction:rtl"
+                    :min="minRequestsPerTestPeriod"
+                    :max="maxRequestsPerTestPeriod"
                 />
                 <div class="d-block">
-                    <h1 style="display:inline">{{parseInt(1000 / requestInterval)}}</h1>
-                    <span style="display:inline-block">/ s </span>
+                    <h2 style="display:inline">{{requestsPerTestPeriod + ' '}}</h2>
+                    <span class="control-detail" style="display:inline-block"> per {{parseInt(testPeriod / 1000)}} s</span>
                 </div>
-                <span class="control-detail">{{requestInterval}}ms break between requests</span>
+                <span class="control-detail">{{'[' + parseFloat(requestInterval / 1000).toFixed(2)}} s break between requests]</span>
             </div>
         </b-col>
 
@@ -74,8 +82,9 @@
 <script>
 // eslint-disable-next-line
 const axios = require('axios')
+//const apiBase = 'https://api.kylegrimsrudma.nz'
 // eslint-disable-next-line
-const apiBase = 'https://api.kylegrimsrudma.nz/'
+const apiBase = 'http://localhost:5555'
 
 export default {    
     name:'RateLimitTester',
@@ -83,78 +92,97 @@ export default {
         return {
             breaking:false,
             breakCountdown:Number,
-            testLength:5000,
+            testPeriod:30000,
+            testStartedAt:Number,
+            testChronoProgress:0,
             breakLength:7000,
-            requestInterval:300,
-            maxRequestInterval:600,
-            minRequestInterval:10,
-            /* maxRequests:250,
-            minRequests:1, */
+            requestsPerTestPeriod:10,
+            minRequestsPerTestPeriod:1,
+            maxRequestsPerTestPeriod:150,
             options: [
-                { text: 'POI', value: 'poi', checked:false },
-                { text: 'Hourly Events', value: 'events/hourly', checked:true },
-                { text: 'Daily Events', value: 'events/daily', checked:false },
-                { text: 'Hourly Statistics', value: 'stats/hourly', checked:true },
-                { text: 'Daily Statistics', value: 'stats/daily', checked:false }
+                { text: 'Dummy', value: '/', checked:true },
+                { text: 'POI', value: '/poi', checked:false },
+                { text: 'Hourly Events', value: '/events/hourly', checked:false },
+                { text: 'Daily Events', value: '/events/daily', checked:false },
+                { text: 'Hourly Statistics', value: '/stats/hourly', checked:false },
+                { text: 'Daily Statistics', value: '/stats/daily', checked:false }
             ],
             activity: {
-                'poi':{
-                    req:0,
-                    res:0,
+                '/':{
+                    reqCount:0,
+                    resCount:0,
                     successes:0,
+                    rejections:0
                 },
-                'events/hourly':{
-                    req:0,
-                    res:0,
+                '/poi':{
+                    reqCount:0,
+                    resCount:0,
                     successes:0,
+                    rejections:0
                 },
-                'events/daily':{
-                    req:0,
-                    res:0,
+                '/events/hourly':{
+                    reqCount:0,
+                    resCount:0,
                     successes:0,
+                    rejections:0
                 },
-                'stats/hourly':{
-                    req:0,
-                    res:0,
+                '/events/daily':{
+                    reqCount:0,
+                    resCount:0,
                     successes:0,
+                    rejections:0
                 },
-                'stats/daily':{
-                    req:0,
-                    res:0,
+                '/stats/hourly':{
+                    reqCount:0,
+                    resCount:0,
                     successes:0,
+                    rejections:0
+                },
+                '/stats/daily':{
+                    reqCount:0,
+                    resCount:0,
+                    successes:0,
+                    rejections:0
                 }
             }
         }
     },
     computed: {
+        testSecondsRemaining() {
+            let result = parseInt(this.testPeriod * (1 - (0.01 * this.testChronoProgress)) / 1000)
+            if (result < 10) {
+                result = '0' + result
+            }
+            result = '00:' + result + ' remaining'
+            return result
+        },
         testResults() {
-            let result = 'in ' + parseInt(this.testLength / 1000) + ' seconds, ' 
+            let result = 'in ' + parseInt(this.testPeriod / 1000) + ' seconds, ' 
             let blockedSum = 0
             let reqSum = 0
             for (let uri in this.activity) {
-                reqSum += this.activity[uri].req
-                blockedSum += (this.activity[uri].res - this.activity[uri].successes)
+                reqSum += this.activity[uri].reqCount
+                blockedSum += this.activity[uri].rejections
             }
             result += reqSum + ' requests made and '
-            result += blockedSum + ' blocked (' + parseInt(blockedSum / reqSum) + '%)' 
+            result += parseInt(100 * blockedSum / reqSum) + '% rejected'
             return result
         },
         requestFrequency() {
             return this.requestInterval
         },
+        requestInterval() {
+            return parseInt(this.testPeriod / this.requestsPerTestPeriod)
+        },
         selected() {
             return this.options.filter((obj) => obj.checked)
         },  
-        requestsPerSecond() {
-            console.log(this.selected.length)
-            return parseInt(1000 / this.requestInterval * this.selected.length)
-        },
-        maxRequestsPerSecond() {
-            return 1000 / this.minRequestInterval * this.options.length
+        totalRequestsPerTestPeriod() {
+            return parseInt(this.requestsPerTestPeriod * this.selected.length)
         },
         intensityValue() {
-            return 100 * this.requestsPerSecond / this.maxRequestsPerSecond
-            //return 1000 / this.minRequestInterval * this.requestsPerSecond / this.options.length
+            return 100 * (this.requestsPerTestPeriod * this.selected.length) / (this.maxRequestsPerTestPeriod * this.options.length)
+            //return 1000 / this.minRequestsPerTestPeriod * this.requestsPerTestPeriod / this.options.length
         },
         intensityClass() {
             if (this.intensityValue > 80) {
@@ -173,10 +201,35 @@ export default {
         }
     },
     async mounted() {
+        setInterval(this.updateTime.bind(this), 1000)
         this.testing = true
         this.doTest()
     },
     methods: {
+        successString(obj) {
+            if (obj.reqCount > 0) {
+                if (obj.resCount > 0) {
+                    return obj.successes + ' (' + parseInt(100 * obj.successes / obj.reqCount) + '%)'
+                }
+                else return '0'
+            }
+            else return null
+        },
+        rejectionString(obj) {
+            if (obj.reqCount > 0) {
+                if (obj.resCount > 0) {
+                    return obj.rejections + ' (' + parseInt(100 * obj.rejections / obj.reqCount) + '%)'
+                }
+                else return '0'
+            }
+            else return null
+        },
+        updateTime() {
+            let now = Date.now()
+            if (!this.breaking) {
+                this.testChronoProgress = 100 * (now - this.testStartedAt) / this.testPeriod 
+            }
+        },
         async doBreak() {
             this.breaking = true
             let inBreak = true
@@ -195,16 +248,18 @@ export default {
             for (;;) {
                 setTimeout(function() {
                     testing = false
-                }, this.testLength)
+                }, this.testPeriod)
+                this.testStartedAt = Date.now()
                 while(testing) {
                     for (let i in this.selected) {
                         let uri = this.selected[i].value
                         this.makeRequest(uri)
-                        //this.activity.find((data) => data.uri == uri)
                     }
                     await this.sleep(this.requestInterval)
                 }
-                await this.doBreak()
+                if (this.selected.length > 0) {
+                    await this.doBreak()
+                }
                 this.clearActivity()
                 testing = true
             }
@@ -212,18 +267,23 @@ export default {
         clearActivity() {
             for (let key in this.activity) {
                 this.activity[key] = {
-                    req:0,
-                    res:0,
-                    successes:0
+                    reqCount:0,
+                    resCount:0,
+                    successes:0,
+                    rejections:0
                 }
             }
         },
         makeRequest(uri) {
-            this.activity[uri].req++
+            let obj = this.activity[uri]
+            obj.reqCount++
             axios.get(apiBase + uri).then((r) => {
-                let stats = this.activity[uri]
-                stats.res++
-                r.status == 200? stats.successes++ : null
+                obj.resCount++
+                r.status == 200? obj.successes++ : null
+            }).catch((err) => {
+                obj.resCount++
+                obj.rejections++
+                console.log(err)
             })
         },
         async sleep(ms) {
