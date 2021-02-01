@@ -1,8 +1,11 @@
+// third-party imports
 const express = require('express')
 const pg = require('pg')
-const { credentials } = require('./pgCredentials.js')
-const config = require('./config')
+// local imports
+const { credentials } = require('./pgCredentials')
 const { endpoints } = require('./endpoints')
+const config = require('./config')
+
 const app = express()
 const pool = new pg.Pool(credentials)
 
@@ -15,10 +18,11 @@ const createUserQueues = (obj) => {
   return result
 }
 
+var overallLimits = new Map()
 var individualLimits = createUserQueues(endpoints)
+
 const queryHandler = (req, res, next) => {
-  addCorsHeaders(res)
-  if (accept(req, res)) {
+  if (acceptOverall(req, res) && acceptIndividual(req, res)) {
     pool.query(req.sqlQuery).then((r) => {
       return res.json(r.rows || [])
     }).catch(next)
@@ -32,8 +36,6 @@ acceptIndividual = (req, res) => {
     queryLog = [req.timestamp]
     req.limits.set(req.ip, [req.timestamp])
   }
-} 
-  }
   else if (queryLog.length < config.INDIVIDUAL_MAX) {
     queryLog.push(req.timestamp)
   }
@@ -45,27 +47,36 @@ acceptIndividual = (req, res) => {
   return true
 }
 
-accept = (req, res) => {
-  let timestamp = Date.now()
-  let ip = req.ip
-  let queryLog = ipMap.get(ip)
-  if (!queryLog || timestamp - queryLog[0] > config.THROTTLE_WINDOW_MS - config.LENIENCY_MS) {
-    ipMap.set(ip, [timestamp])
+acceptOverall = (req, res) => {
+  let queryLog = overallLimits.get(req.ip)
+  if (!queryLog || req.timestamp - queryLog[0] > config.OVERALL_WINDOW - config.LENIENCY) {
+    overallLimits.set(req.ip, [req.timestamp])
   }
-  else if (queryLog.length < config.THROTTLE_MAX_REQUESTS) {
-    queryLog.push(timestamp)
+  else if (queryLog.length < config.OVERALL_MAX) {
+    queryLog.push(req.timestamp)
   }
   else {
     res.status(429)
-    res.send()
+    res.send('Overall request limit reached. You may not exceed a total of ' + config.OVERALL_MAX + ' requests to this server within a period of ' + parseInt(config.OVERALL_WINDOW / 1000) + ' seconds.')
     return false
   }
   return true
 }
 
 app.get('/:category/:specification?', (req, res, next) => {
-  addCorsHeaders(res)
-  req.sqlQuery = req.params.specification? endpoints[req.params.category][req.params.specification] : endpoints[req.params.category] 
+  req.timestamp = Date.now()
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET');
+  let cat = req.params.category
+  let spec = req.params.specification
+  if (spec) {
+    req.sqlQuery = endpoints[cat][spec]
+    req.limits = individualLimits[cat][spec]
+  }
+  else {
+    req.sqlQuery = endpoints[cat]
+    req.limits = individualLimits[cat]
+  }
   return next()
 }, queryHandler)
 
