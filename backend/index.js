@@ -6,8 +6,16 @@ const { endpoints } = require('./endpoints')
 const app = express()
 const pool = new pg.Pool(credentials)
 
-var ipMap = new Map()
+const createUserQueues = (obj) => {
+  let result = {}
+  for (let key in obj) {
+    let child = obj[key]
+    result[key] = typeof child == 'string' ? new Map() : createUserQueues(child) 
+  }
+  return result
+}
 
+var individualLimits = createUserQueues(endpoints)
 const queryHandler = (req, res, next) => {
   addCorsHeaders(res)
   if (accept(req, res)) {
@@ -17,10 +25,25 @@ const queryHandler = (req, res, next) => {
   }
 }
 
-addCorsHeaders = (res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET');
+acceptIndividual = (req, res) => {
+  let queryLog = req.limits.get(req.ip)
+  if (!queryLog || req.timestamp - queryLog[0] > config.INDIVIDUAL_WINDOW - config.LENIENCY) {
+    //queryLog.set(req.ip, [req.timestamp])
+    queryLog = [req.timestamp]
+    req.limits.set(req.ip, [req.timestamp])
+  }
 } 
+  }
+  else if (queryLog.length < config.INDIVIDUAL_MAX) {
+    queryLog.push(req.timestamp)
+  }
+  else {
+    res.status(429)
+    res.send('Request limit reached for this endpoint. You may not exceed ' + config.INDIVIDUAL_MAX + ' requests to any given endpoint within a period of ' + parseInt(config.INDIVIDUAL_WINDOW / 1000) + ' seconds.')
+    return false
+  }
+  return true
+}
 
 accept = (req, res) => {
   let timestamp = Date.now()
