@@ -110,8 +110,6 @@
 
 <script>
 const axios = require('axios')
-//const apiBase = 'https://api.kylegrimsrudma.nz'
-const apiBase = 'http://localhost:5555'
 
 export default {    
     name:'RateLimitTester',
@@ -238,7 +236,7 @@ export default {
         makeRequest(uri) {
             let obj = this.activityRecords[uri]
             obj.reqCount++
-            axios.get(apiBase + uri).then((r) => {
+            axios.get(uri).then((r) => {
                 obj.resCount++
                 r.status == 200? obj.successes++ : null
             }).catch((err) => {
