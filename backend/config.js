@@ -1,0 +1,5 @@
+module.exports = {
+    THROTTLE_MAX_REQUESTS:3,
+    THROTTLE_WINDOW_MS:5000,
+    LENIENCY_MS:100
+}

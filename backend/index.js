@@ -1,14 +1,11 @@
 const express = require('express')
 const pg = require('pg')
 const { credentials } = require('./pgCredentials.js')
+const { THROTTLE_MAX_REQUESTS, THROTTLE_WINDOW_MS, LENIENCY_MS } = require('./config.js')
 const app = express()
-// configs come from standard PostgreSQL env vars
-// https://www.postgresql.org/docs/9.6/static/libpq-envars.html
 const pool = new pg.Pool(credentials)
-var ipMap = new Map()
 
-const THROTTLE_MAX_REQUESTS = 3
-const THROTTLE_WINDOW = 5000
+var ipMap = new Map()
 
 const queryHandler = (req, res, next) => {
   addCorsHeaders(res)
@@ -20,20 +17,28 @@ const queryHandler = (req, res, next) => {
 }
 
 accept = (req) => {
+  console.log("\n==================================")
   let timestamp = Date.now()
-  //let ip = req.headers['x-forwarded-for']
   let ip = req.ip
   let queryLog = ipMap.get(ip)
-  if (!queryLog || timestamp - queryLog[0] > THROTTLE_WINDOW) {
+  try {
+    console.log(queryLog.length + ' in queue')
+  }
+  catch { 
+    console.log('creating queue for ' + ip + '...')
+  }
+  if (!queryLog || timestamp - queryLog[0] > THROTTLE_WINDOW_MS - LENIENCY_MS) {
+    console.log('0 -> 1')
     ipMap.set(ip, [timestamp])
   }
   else if (queryLog.length < THROTTLE_MAX_REQUESTS) {
+    console.log(queryLog.length + " -> " + parseInt(queryLog.length + 1))
     queryLog.push(timestamp)
   }
-  else return false
-
-  /* console.log(queryLog)
-  console.log(ipMap.get(ip)) */
+  else {
+    console.log(parseFloat((timestamp - queryLog[0]  - THROTTLE_WINDOW_MS) / 1000).toFixed(3) + ' s difference, ' + queryLog.length + ', rejecting')
+    return false
+  }
   return true
 }
 
