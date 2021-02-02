@@ -4,6 +4,7 @@ import Vue from 'vue'
 import './plugins/bootstrap-vue'
 import App from './App.vue'
 import axios from 'axios';
+import router from './router'
 
 import { BIconPlusCircle, BIconXCircle } from 'bootstrap-vue'
 Vue.component('b-icon-plus-circle', BIconPlusCircle)
@@ -27,5 +28,6 @@ Vue.mixin({
 })
 
 new Vue({
-  render: h => h(App),
+  router,
+  render: h => h(App)
 }).$mount('#app')

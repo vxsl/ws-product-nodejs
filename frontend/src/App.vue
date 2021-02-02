@@ -2,35 +2,23 @@
   <div id="app" class="bg-light">
     <b-navbar type="dark" variant="dark" id="nav" class="padded">
       <img id="logo" src="@/assets/eqworks.svg"/>
-      <div class="d-flex align-items-top">
-        <a class="text-light monospace" href="https://github.com/vxsl/ws-product-nodejs">ws-product-nodejs</a>
+      <div id="logo-text" class="">
+        <a href="/">Work Sample</a>
+        <a id="subtitle" class="monospace" href="https://github.com/vxsl/ws-product-nodejs">@vxsl/ws-product-nodejs</a>
       </div>
       <b-navbar-nav class="ml-auto">
-        <b-nav-item href="#">Rate Limit Testing Module</b-nav-item>
-        <b-nav-item href="#">Charts</b-nav-item>
+        <b-nav-item href="/rate-limit-test">Rate Limit Testing Module</b-nav-item>
+        <b-nav-item href="/charts">Charts</b-nav-item>
       </b-navbar-nav>
     </b-navbar>
-    <ChartArea :endpoints="endpoints"/>
-    <RateLimitTester v-if="false" :endpoints="endpoints"/>
+    <router-view/>
   </div>
 </template>
 
 <script>
-import ChartArea from '@/components/ChartArea.vue'
-import RateLimitTester from '@/components/RateLimitTester.vue'
-import {endpoints} from '@/js/endpointConfig.js'
 
 export default {
-  name: 'App',
-  data() {
-    return {
-      endpoints: endpoints
-    }
-  },
-  components: {
-    ChartArea,
-    RateLimitTester,
-  },
+  name: 'App'
 }
 </script>
 
@@ -46,6 +34,8 @@ export default {
   min-height:100vh;
   font-weight:300;
   font-size:1.1em;
+  width:100vw;
+  overflow-x:hidden;
 }
 
 .monospace {
@@ -65,6 +55,18 @@ export default {
     max-height:100%;
     width:auto;
     margin-right:1em;
+  }
+  #logo-text {
+    font-size:0.9em;
+    text-align:left;
+    a {
+      font-weight:300;
+      display:block;
+      color:$light-color
+    }
+    #subtitle {
+      font-size:0.8em;
+    }
   }
 }
 
