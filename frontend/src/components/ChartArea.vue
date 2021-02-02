@@ -1,16 +1,17 @@
 <template>
   <div class="padded">
     <b-row id="charts-module-header" class="d-flex align-items-center padded">
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat..</p>
+      <p>Here you can compare as many different charts as you'd like. Try out the different toggles on each chart, or enabling and disabling an individual dataset by clicking on its label.</p>
     </b-row>
     <div id="charts-module">
       <div id="collapse-container">
         <b-button v-b-toggle.collapse id="collapse-button">
-          <b-icon-plus-circle aria-hidden="true"></b-icon-plus-circle>
+          <b-icon-plus-circle v-if="!collapseVisible" aria-hidden="true"></b-icon-plus-circle>
+          <b-icon-arrow-down v-else aria-hidden="true"></b-icon-arrow-down>
         </b-button>
         <b-collapse visible id="collapse" v-model="collapseVisible">
           <div id="collapse-content">
-            <p>Select a chart to compare with.</p>
+            <p>{{charts.length? 'Select a chart to compare with.' : 'Select a chart to begin.'}}</p>
             <b-button  v-for="e in endpoints" :key="e.title" @click="addChart(e)" class="m-1 btn" variant="primary">
               {{e.title}}
             </b-button>
@@ -23,6 +24,11 @@
         :endpoint="chart.endpoint"
         class="chart-card"
         @close="deleteChart(chart.id)"
+      />
+      <ChartCard
+        v-if="!charts.length"
+        :endpoint="endpoints[0]"
+        class="chart-card dummy"
       />
     </div>
   </div>
@@ -93,6 +99,10 @@ export default {
   padding-bottom:2vh;
   .chart-card {
     margin-bottom:2em;
+    &.dummy {
+      filter:blur(0.3em);
+      opacity:0.6;
+    }
   }
   #collapse-container {
     width:100%;
