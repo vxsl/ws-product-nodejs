@@ -25,44 +25,57 @@ export default {
   },
   data() {
     return {
+      chartColors:Object.values(colors).splice(0,5),
       dataSource: Object,
-      chartData: {},
+      chartData: {
+        labels: [],
+        datasets: []
+      },
       chartOptions: {
         responsive: true,
         maintainAspectRatio: false,
-      },
+        scales: {
+          yAxes:[]
+        }
+      }
     };
   },
-  async created() {
-    await axios
+  mounted: async function () {
+    this.dataSource = await axios
       .get(this.endpoint.uri)
       .then((r) => r.data)
-      .then((data) => {
-        this.dataSource = data;
-      });
 
-    this.chartData = {
-      labels: this.dataSource.map((obj) => obj.date),
-      datasets:this.createDatasets()
-    };
+    this.configureChart()
     this.$refs.chart.draw(this.chartData, this.chartOptions)
   },
   methods: {
-    createDatasets() {
-      let i = 0
-      let result = []
-      for (let key in this.dataSource[0]) {
-        if (key !== this.endpoint.xAxis) {
-          result.push({
-            label:key.charAt(0).toUpperCase() + key.slice(1),
-            backgroundColor:Object.values(colors)[i], 
-            data:this.dataSource.map((obj) => obj[key])
-          })
-        }
-        i++
-      }
-      return result
-    }
+    configureChart() {
+      function* yieldArray(arr) { yield* arr }
+      let chartColorsGen = yieldArray(this.chartColors)
+      this.chartData.labels = this.dataSource.map((obj) => obj.date)
+      Object.entries(this.dataSource[0]).forEach(
+        function([key, val]) {
+          if (key !== this.endpoint.xAxis && !isNaN(val)) {
+            let id = key.charAt(0).toUpperCase() + key.slice(1)
+            this.chartOptions.scales.yAxes.push({
+              id:id,
+              type:'linear',
+              position:'left',
+              ticks: {
+                max:Math.max.apply(Math, this.dataSource.map(o => o[key])),
+                min:Math.min.apply(Math, this.dataSource.map(o => o[key])),
+              }
+            })
+
+            this.chartData.datasets.push({
+              label:id,
+              backgroundColor:chartColorsGen.next().value, 
+              data:this.dataSource.map((obj) => obj[key]),
+              yAxisID:id
+            })         
+          }
+      }.bind(this))
+    },
   }
 };
 
@@ -78,21 +91,21 @@ canvas {
   -ms-user-select: none;
 }
 .chart-outer-container {
-  border-radius: 0.5em;
+  background:$light-grey-color;
+  border-radius:3em;
   position: relative;
-  width: 20%;
+  height:100%;
+  width:100%;
   margin: 1em;
   user-select: none;
+  margin:0;
+
   .chart-container {
     filter: none;
     transition: filter 0.5s;
-    border-radius: 0.5em;
     overflow: hidden;
     padding: 3em;
     padding-top:1.5em;
-    border: solid;
-    border-color: $dark-color;
-    border-width: 1px;
     .chart-header {
       text-align: left;
       * {
