@@ -4,21 +4,24 @@
       <div class="chart-header">
         <span class="chart-title">{{ endpoint.title }}</span>
         <span class="monospace chart-subtitle">{{endpoint.uri}}</span>
-      </div>
-      <LineChart ref="chart"/>
+      <LineChart v-if="endpoint.chartType == 'line'" ref="chart"/>
+      <BarChart v-else-if="endpoint.chartType == 'bar'" ref="chart"/>
     </div>
   </div>
 </template>
 
 <script>
-const axios = require("axios");
-import LineChart from "@/components/charts/LineChart.vue";
+const { Chart } = require('chart.js')
+import LineChart from "@/components/charts/LineChart.vue"
+import BarChart from "@/components/charts/BarChart.vue"
+
 //eslint-disable-next-line
 import colors from "@/scss/custom.scss"
 
 export default {
   components: {
     LineChart,
+    BarChart
   },
   props: {
     endpoint: Object,
