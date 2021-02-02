@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <RateLimitTester class="padded" :endpoints="endpoints"/>
+  <div id="page">
+    <RateLimitTester class="padded module" :endpoints="endpoints"/>
   </div>
 </template>
 
@@ -21,5 +21,13 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" >
+#page {
+  height:93vh;
+  display:flex;
+  align-items:center;
+  .module {
+    height:65vh;
+  }
+}
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <b-row id="outer-container" class="bg-light">
+    <div id="outer-container">
         <b-col cols="8">
             <div id='left-column'>
                 <b-progress id="intensity">
@@ -25,7 +25,7 @@
                     :class="intensityClass"
                     />
                 </b-progress>
-                <div 
+                <b-card 
                 id="table-container" 
                 class="d-flex justify-content-center align-items-center"
                 >
@@ -40,19 +40,21 @@
                     <b-table-simple 
                     fixed 
                     small 
+                    striped
+                    hover
                     id="response-table" 
                     class="monospace" 
                     :class="paused? 'break' : null"
                     >
                         <b-thead>
-                            <b-tr>
+                            <b-tr id="table-header">
                                 <b-th>URI</b-th>
-                                <b-th>REQUESTS</b-th>
+                                <b-th>REQS</b-th>
                                 <b-th>RESPONSES</b-th>
-                                <b-th>200</b-th>
-                                <b-th>429</b-th>
+                                <b-th>200 (OK)</b-th>
+                                <b-th>429 (DISCRETE)</b-th>
                                 <b-th>429 (GLOBAL)</b-th>
-                                <b-th>OTHER</b-th>
+                                <!-- <b-th>OTHER</b-th> -->
                             </b-tr>
                         </b-thead>
                         <b-tbody>
@@ -63,12 +65,12 @@
                                 <b-td>{{successString(obj)}}</b-td>
                                 <b-td>{{rejectionString(obj)}}</b-td>
                                 <b-td>{{globalRejectionString(obj)}}</b-td>
-                                <b-td>{{obj.otherCount}}</b-td>
+                                <!-- <b-td>{{obj.otherCount}}</b-td> -->
                             </b-tr>
                         </b-tbody>
                     </b-table-simple>
-                </div>
-                <b-progress>
+                </b-card>
+                <b-progress id="test-progress-bar">
                     <b-progress-bar 
                     :value="testChronoProgress"
                     :label="paused? breakCountdown + ' s until next test' : testSecondsRemaining" 
@@ -77,10 +79,10 @@
             </div>
         </b-col>
         <b-col id="control-box">
-            <b-card id="query-options">
+             <b-card id="query-options">
                 <span class="control-label">Endpoints to query</span>
                 <b-form-checkbox
-                    class="query-checkbox" 
+                    class="btn" 
                     v-for="option in options" 
                     :key="option.title" 
                     v-model="option.checked" 
@@ -89,7 +91,7 @@
                     {{ option.title }}
                 </b-form-checkbox>
             </b-card>
-            <div>
+            <b-card id="frequency-slider">
                 <span class="control-label">Individual request frequency</span>
                 <b-form-input 
                     v-model="requestsPerThrottleWindow" 
@@ -102,10 +104,10 @@
                     <span class="control-detail"> per {{parseInt(throttleWindow / 1000)}} s</span>
                 </div>
                 <span class="control-detail">{{'[' + parseFloat(requestInterval / 1000).toFixed(2)}} s break between requests]</span>
-            </div>
+            </b-card>
         </b-col>
 
-    </b-row>
+    </div>
 </template>
 
 <script>
@@ -325,14 +327,25 @@ export default {
 @import '@/scss/custom.scss';
 
 #outer-container {
+    display:flex;
     padding:2em;
     border-radius:2em;
-
+    height:100%;
     #left-column {
         display:flex;
         flex-direction: column;
         min-height:100%;
+        #test-progress-bar {
+            height:3em;
+        }
         #table-container {
+            border-radius:1em;
+            border-bottom-right-radius:0;
+            border-bottom-left-radius:0;
+            .card-body {
+                padding:0 !important;
+            }
+            flex:1;
             font-size:0.8em;
             height:100%;
             position:relative;
@@ -349,9 +362,18 @@ export default {
             }
             
             #response-table {
+                border-radius:1em;
+                height:100% !important;
+                margin-bottom:0;
                 &.break {
                     transition:filter 0.4s;
                     filter:blur(0.4em);
+                }
+                #table-header {
+                    th {
+                        border-top:none;
+                        vertical-align:middle;
+                    }
                 }
             }
         }
@@ -359,6 +381,9 @@ export default {
 }
 
 #control-box {
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
     .control-label {
         width:100%;
         color:theme-color('dark');
@@ -375,12 +400,26 @@ export default {
     }
 }
 
-#query-options {
-    margin-bottom:3em;
+
+#query-options, #frequency-slider {
+    flex:1;
     background:theme-color("light-grey");
-    .query-checkbox {
-        display:block !important; 
-        margin:1em;   
+    border-top-right-radius:2em;
+    border-bottom-right-radius:2em;
+    .card-body {
+        display:flex;      
+        flex-direction:column;
+        justify-content:center;
+        width:100%;
+    }
+}
+
+#query-options {
+    flex-basis:60%;
+    margin-bottom:1em;
+    width:100%;
+    .btn {
+        width:100%;
         label {
             font-size:0.8em;
             width:100%;
@@ -397,8 +436,8 @@ export default {
 
 #intensity {
     flex:1;
-    margin-bottom:2em;
     display:flex;
+    margin-bottom:2em;
     align-items:center;
     .progress-overlay {
         position:absolute;
@@ -411,6 +450,7 @@ export default {
     }
     #intensity-bar {
         height:100%;
+        min-height:10vh;
         transition:background 0.5s;
         &.high {
             background:$gray-800;
