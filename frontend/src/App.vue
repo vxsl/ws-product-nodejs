@@ -18,44 +18,13 @@
 <script>
 import ChartArea from '@/components/ChartArea.vue'
 import RateLimitTester from '@/components/RateLimitTester.vue'
+import {endpoints} from '@/js/endpointConfig.js'
 
 export default {
   name: 'App',
   data() {
     return {
-      endpoints: [
-        { 
-          title: 'POI', 
-          uri: '/poi',
-          chartType:'line',
-          xAxis:'' 
-        },
-        {
-          title: 'Hourly Events', 
-          uri: '/events/hourly',
-          chartType:'line',
-          xAxis:'hour' 
-           
-        },
-        { 
-          title: 'Daily Events', 
-          uri: '/events/daily',
-          chartType:'line',
-          xAxis:'date'  
-        },
-        { 
-          title: 'Hourly Statistics', 
-          uri: '/stats/hourly',
-          chartType:'line',
-          xAxis:'hour' 
-        },
-        { 
-          title: 'Daily Statistics', 
-          uri: '/stats/daily',
-          chartType:'line',
-          xAxis:'date' 
-        }
-      ]
+      endpoints: endpoints
     }
   },
   components: {
