@@ -6,9 +6,14 @@
         <a href="/">Work Sample</a>
         <a id="subtitle" class="monospace" href="https://github.com/vxsl/ws-product-nodejs">@vxsl/ws-product-nodejs</a>
       </div>
-      <b-navbar-nav class="ml-auto">
-        <b-nav-item href="/rate-limit-test">Rate Limit Testing Module</b-nav-item>
-        <b-nav-item href="/charts">Charts</b-nav-item>
+      <b-navbar-nav class="ml-auto" id="nav-links">
+        <b-nav-item class="px-2" href="/rate-limit-test">Rate Limit Testing Module</b-nav-item>
+        <b-nav-item class="px-2" href="/charts">Chart Visualizations</b-nav-item>
+        <b-nav-item class="px-2" href="/table">Data Table</b-nav-item>
+        <b-nav-item class="px-2" href="/geo">Map</b-nav-item>
+        <b-nav-item class="px-2" id="mail-link" href="mailto:hi@kylegrimsrudma.nz">
+          <b-icon-envelope/>
+        </b-nav-item>
       </b-navbar-nav>
     </b-navbar>
     <router-view/>
@@ -48,7 +53,14 @@ export default {
 }
 
 #nav {
+  font-size:0.9em;
   height:7vh;
+  a {
+    color:$light-color;
+    &:hover {
+      color:$medium-grey-color;
+    }
+  }
   #logo {
     padding:0.25vh;
     filter:invert(100%);
@@ -57,12 +69,10 @@ export default {
     margin-right:1em;
   }
   #logo-text {
-    font-size:0.9em;
     text-align:left;
     a {
       font-weight:300;
       display:block;
-      color:$light-color
     }
     #subtitle {
       font-size:0.8em;
