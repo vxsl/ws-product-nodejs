@@ -1,14 +1,19 @@
 @import "../../node_modules/bootstrap/scss/bootstrap";
 
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@200;300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,300&family=Lora:ital@0;1&family=Roboto:wght@100;300;500&display=swap');
 
 $primary-color: #3d5aff;
-$secondary-color:#a7a7a7;
+$secondary-color:#6A7FDB;
+$tertiary-color:#57E2E5;
+$quaternary-color:#45CB85;
+$quinary-color:#16302B;
 $danger-color:#ff2600;
 $light-color: #f3f3f3;
 $dark-color:#353232;
 $grey-color:#afafaf;
 $light-grey-color:rgb(238, 238, 238);
+$medium-grey-color:rgb(212, 212, 212);
 $dark-grey-color:rgb(110, 110, 110);
 $info-color:#3F88C5;
 $positive-color:#79ca43;
@@ -17,11 +22,15 @@ $insane-color:#2E282A;
 $theme-colors: (
   "primary": $primary-color,
   "secondary": $secondary-color,
+  "tertiary": $tertiary-color,
+  "quaternary": $quaternary-color,
+  "quinary": $quinary-color,
   "danger": $danger-color,
   "light": $light-color,
   "dark": $dark-color,
   "grey": $grey-color,
   "light-grey": $light-grey-color,
+  "medium-grey": $medium-grey-color,
   "info": $info-color,
   "positive": $positive-color,
   "insane": $insane-color
@@ -30,11 +39,15 @@ $theme-colors: (
 :export {
   primaryColor: $primary-color;
   secondaryColor: $secondary-color;
+  tertiaryColor: $tertiary-color;
+  quaternaryColor: $quaternary-color;
+  quinaryColor: $quinary-color;
   dangerColor: $danger-color;
   lightColor: $light-color;
   darkColor: $dark-color;
   greyColor: $grey-color;
   lightGreyColor: $light-grey-color;
+  mediumGreyColor: $medium-grey-color;
   darkGreyColor: $dark-grey-color;
   infoColor: $info-color;
   positiveColor: $positive-color;
