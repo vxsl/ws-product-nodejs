@@ -1,9 +1,21 @@
 <template>
   <div ref="outerContainer" class="chart-outer-container">
     <div ref="chartContainer" class="chart-container">
-      <div class="chart-header">
-        <span class="chart-title">{{ endpoint.title }}</span>
-        <span class="monospace chart-subtitle">{{endpoint.uri}}</span>
+      <b-row class="chart-header">
+        <b-col>
+            <span class="chart-title">{{ endpoint.title }}</span>
+            <span class="monospace chart-subtitle">{{endpoint.uri}}</span>
+        </b-col>
+        <b-col class="d-flex justify-content-end align-items-center">
+          <b-button 
+          v-if="dataKeys.length > 1"
+          @click="toggleAbsolute" 
+          class="absolute-button">
+            {{absolute? 'Absolute scale' : 'Relative scale'}}
+          </b-button>
+          <b-icon-x-circle @click="$emit('close')" class="close-button"/>
+        </b-col>
+      </b-row>
       <LineChart v-if="endpoint.chartType == 'line'" ref="chart"/>
       <BarChart v-else-if="endpoint.chartType == 'bar'" ref="chart"/>
     </div>
@@ -115,6 +127,19 @@ canvas {
         display:block;
       }
       margin-bottom:1em;
+      .absolute-button {
+        background:transparent;
+        border:solid;
+        border-width:1px;
+        border-color:$grey-color;
+        color:$grey-color;
+      }
+      .close-button {
+        cursor:pointer;
+        font-size:1.3em;
+        margin-left:1em;
+        margin-right:1em;
+      }
     }
   }
 }
