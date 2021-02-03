@@ -10,6 +10,7 @@
           <b-button
             class="tooltip-button"
             v-b-tooltip.hover
+            @click="init"
             title="Refresh table data"
           >
             <b-icon-refresh class="icon-button" />
@@ -19,13 +20,6 @@
           </b-button>
         </b-col>
       </b-row>
-      <div id="autocomplete-container">
-        <AutoCompleteWrapper
-          v-if="false"
-          class="autocomplete"
-          :endpoint="endpoint"
-        />
-      </div>
       <b-card
         id="table-container"
         class="d-flex justify-content-center align-items-center"
@@ -48,7 +42,7 @@
           </b-thead>
           <b-tbody>
             <b-tr v-for="(obj, key) in dataSource" :key="key">
-              <b-th>{{ parseKey(key) }}</b-th>
+              <b-th>{{parse(domainKey, obj[domainKey])}}</b-th>
               <b-td v-for="val in dataKeys" :key="val">
                 {{ obj[val] }}
               </b-td>
@@ -63,10 +57,8 @@
 <script>
 // third-party requirements
 const axios = require("axios");
-const moment = require("moment");
 
 // local imports
-import AutoCompleteWrapper from "@/components/util/AutoCompleteWrapper.vue";
 import dataOperations from "@/mixins/dataOperations.js";
 
 export default {
@@ -75,53 +67,74 @@ export default {
     endpoint: Object,
   },
   components: {
-    AutoCompleteWrapper,
   },
   mixins: [dataOperations],
   data() {
     return {
-      moment: moment,
       dataSource: Object, // to store the result obtained from the API
-      rawData:String,
-      dataKeys: [], // to store the field(s) that will be displayed as y-axes
+      dataKeys: [],
+      domainKey:String,
+      rows: Array
     };
   },
-  computed: {},
-  async mounted() {
-    // make API request
-    this.dataSource = await axios.get(this.endpoint.uri).then((r) => r.data);
-    this.rawData = JSON.stringify(this.dataSource)
+  methods:{
+    async init() {
+      this.dataSource = {}
+      this.dataKeys = []
+      this.domainKey = ''
+      this.rows = []
 
-    // determine which fields are eligible for y-axes and place these strings in dataKeys[]
-    Object.keys(this.dataSource[0]).forEach(
-      function (key) {
-        if (key !== this.endpoint.xAxis.key) {
-          this.dataKeys.push(key);
-        }
-      }.bind(this)
-    );
+      // make API request
+      this.dataSource = await axios.get(this.endpoint.uri).then((r) => r.data);
 
-    // sort data numerically according to the preconfigured 'xAxis.key' value
-    this.dataSource.sort(
-      (a, b) =>
-        parseFloat(a[this.endpoint.xAxis.key]) -
-        parseFloat(b[this.endpoint.xAxis.key])
-    );
-
-    // if the 'group' property is set to 'true' for this chart's endpoint in @/js/endpointsConfig.js,
-    // replace the retrieved data with a mutated version that is grouped according to the key.
-    if (this.endpoint.xAxis.group) {
-      this.dataSource = this.groupData(
-        this.endpoint.xAxis.key,
-        this.dataKeys,
-        this.dataSource
+      // determine which fields are eligible for y-axes and place these strings in dataKeys[]
+      Object.keys(this.dataSource[0]).forEach(
+        function (key) {
+          if (key !== this.endpoint.xAxis.key) {
+            this.dataKeys.push(key);
+          }
+          else {
+            this.domainKey = key
+          }
+        }.bind(this)
       );
+
+      // sort data numerically according to the preconfigured 'xAxis.key' value
+      this.dataSource.sort(
+        (a, b) =>
+          parseFloat(a[this.endpoint.xAxis.key]) -
+          parseFloat(b[this.endpoint.xAxis.key])
+      );
+
+      // if the 'group' property is set to 'true' for this chart's endpoint in @/js/endpointsConfig.js,
+      // replace the retrieved data with a mutated version that is grouped according to the key.
+      if (this.endpoint.xAxis.group) {
+        this.dataSource = this.groupData(
+          this.endpoint.xAxis.key,
+          this.dataKeys,
+          this.dataSource
+        );
+      }
     }
+  },
+  async mounted() {
+    await this.init()
+    
+    this.rows = this.dataSource.reduce((result, r) => {
+      let arr = Object.values(r).map(v => v.toString())
+      /* result.push({
+        [this.parse(this.domainKey, arr.shift())]:arr
+      }) */
+      result.push([this.parse(this.domainKey, arr.shift()).toString()].concat(arr))
+      return result
+    }, [])
+
+    this.$emit('loaded', this.rows)
   },
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import "@/scss/custom.scss";
 
 #outer-container {
@@ -140,16 +153,7 @@ export default {
       }
       margin-bottom: 1em;
     }
-    #autocomplete-container {
-      border: solid;
-      border-width: 2px;
-      margin-bottom: 1em;
-      
-      .autocomplete {
-        height: 100%;
-      }
-      height: 3em;
-    }
+    
     #table-container {
       border-radius: 1em;
       border-bottom-right-radius: 0;

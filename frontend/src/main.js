@@ -6,7 +6,7 @@ import App from './App.vue'
 import axios from 'axios';
 import router from './router'
 
-import { BIconPlusCircle, BIconXCircle, BIconThreeDots, BIconArrowDown, BIconGrid3x3, BIconGraphUp, BIconEnvelope, BIconArrowCounterclockwise } from 'bootstrap-vue'
+import { BIconPlusCircle, BIconXCircle, BIconThreeDots, BIconArrowDown, BIconGrid3x3, BIconGraphUp, BIconEnvelope, BIconArrowCounterclockwise, BIconSearch } from 'bootstrap-vue'
 Vue.component('b-icon-plus-circle', BIconPlusCircle)
 Vue.component('b-icon-x-circle', BIconXCircle)
 Vue.component('b-icon-three-dots', BIconThreeDots)
@@ -15,6 +15,9 @@ Vue.component('b-icon-grid', BIconGrid3x3)
 Vue.component('b-icon-graph-up', BIconGraphUp)
 Vue.component('b-icon-envelope', BIconEnvelope)
 Vue.component('b-icon-refresh', BIconArrowCounterclockwise)
+Vue.component('b-icon-search', BIconSearch)
+
+
 
 Vue.config.productionTip = false
 axios.defaults.baseURL = 'http://localhost:5555'
