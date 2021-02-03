@@ -4,6 +4,7 @@ import Home from '../views/Home.vue'
 import RateLimitTestingPage from '../views/RateLimitTestingPage.vue'
 import ChartsPage from '../views/ChartsPage.vue'
 import TablePage from '../views/TablePage.vue'
+import GeoPage from '../views/GeoPage.vue'
 
 Vue.use(VueRouter)
 
@@ -27,6 +28,11 @@ const routes = [
     path: '/table',
     name: 'TablePage',
     component:TablePage
+  },
+  {
+    path: '/geo',
+    name: 'GeoPage',
+    component:GeoPage
   }
 ]
 
