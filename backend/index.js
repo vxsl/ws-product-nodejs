@@ -12,8 +12,8 @@ const pool = new pg.Pool(credentials)
 const createUserQueues = (obj) => {
   let result = {}
   for (let key in obj) {
-    let child = obj[key]
-    result[key] = typeof child == 'string' ? new Map() : createUserQueues(child) 
+    let t = typeof obj[key]
+    result[key] = t == 'string' || t == 'function' ? new Map() : createUserQueues(obj[key]) 
   }
   return result
 }
@@ -68,13 +68,15 @@ app.get('/favicon.ico', (req, res) => {
   res.send()
 })
 
+app.get('/:category/:specification?/:poi?', (req, res, next) => {
   req.timestamp = Date.now()
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET');
   let cat = req.params.category
   let spec = req.params.specification
+  let poi = req.params.poi
   if (spec) {
-    req.sqlQuery = endpoints[cat][spec]
+    req.sqlQuery = endpoints[cat][spec](poi)
     req.limits = individualLimits[cat][spec]
   }
   else {
