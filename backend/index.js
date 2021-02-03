@@ -63,7 +63,11 @@ acceptOverall = (req, res) => {
   return true
 }
 
-app.get('/:category/:specification?', (req, res, next) => {
+app.get('/favicon.ico', (req, res) => {
+  res.status(404)
+  res.send()
+})
+
   req.timestamp = Date.now()
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET');
