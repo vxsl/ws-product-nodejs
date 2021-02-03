@@ -1,11 +1,11 @@
 /* adapted from https://vuejs.org/v2/cookbook/practical-use-of-scoped-slots.html */
-<template>
+<template id="marker">
     <div/>
 </template>
 
 <script>
-import { POINT_MARKER_ICON_CONFIG } from "./constants/mapSettings";
-
+//import { POINT_MARKER_ICON_CONFIG } from "./constants/mapSettings";
+import colors from '@/scss/custom.scss'
 export default {
   props: {
     google: {
@@ -29,10 +29,15 @@ export default {
       position: this.marker.position,
       marker: this.marker,
       map: this.map,
-      icon: POINT_MARKER_ICON_CONFIG
+      icon: {
+        path: "M 0, 0 m -5, 0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0",
+        fillColor:colors.tertiaryColor,
+        strokeWeight: 0,
+        fillOpacity: 1,
+        scale: this.marker.intensity * 10
+      }
     });
   },
 
-  /* render() {} */
 };
 </script>

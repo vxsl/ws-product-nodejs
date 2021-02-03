@@ -42,13 +42,36 @@ export default {
   mounted() {
   },
   computed: {
+    dataKey() {
+      return Object.keys(this.pois[0])[1]
+    },
+    max() {
+      let m = this.pois[0][this.dataKey]
+      for (let p of this.pois) {
+        if (p[this.dataKey] > m) {
+          m = p[this.dataKey]
+        }
+      }
+      console.log(m)
+      return m
+    },
+    min() {
+      let m = this.pois[0][this.dataKey]
+      for (let p of this.pois) {
+        if (p[this.dataKey] < m) {
+          m = p[this.dataKey]
+        }
+      }
+      console.log(m)
+      return m
+    },
     markers() {
       return this.pois.map(o => ({
-        id:o.events.toString(),
         position: {
           lat:o.poi.lat,
           lng:o.poi.lon
-        }
+        },
+        intensity:parseFloat((o[this.dataKey] - this.min) / this.max) 
       }))
     },
     mapConfig() {
@@ -57,7 +80,6 @@ export default {
         center: this.mapCenter
       };
     },
-
     mapCenter() {
         let result = getCenterOfBounds(this.pois.reduce((points, o) => {
           points.push({
@@ -74,3 +96,15 @@ export default {
   }
 };
 </script>
+
+<style lang="scss">
+.marker {
+  display:none !important;
+  * {
+    display:none !important;
+  }
+}
+title {
+  display:none !important;
+}
+</style>
