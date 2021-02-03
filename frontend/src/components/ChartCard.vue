@@ -30,8 +30,12 @@
 </template>
 
 <script>
+// third-party requirements
 const axios = require("axios");
 const { Chart } = require("chart.js");
+
+// local imports
+import dataOperations from '@/mixins/dataOperations.js'
 import LineChart from "@/components/charts/LineChart.vue";
 import BarChart from "@/components/charts/BarChart.vue";
 
@@ -39,6 +43,7 @@ import BarChart from "@/components/charts/BarChart.vue";
 import colors from "@/scss/custom.scss";
 
 export default {
+  name:'ChartCard',
   components: {
     LineChart,
     BarChart,
@@ -46,6 +51,7 @@ export default {
   props: {
     endpoint: Object,
   },
+  mixins:[dataOperations],
   data() {
     return {
       dataSource: Object, // to store the result obtained from the API
@@ -130,7 +136,7 @@ export default {
       // if the 'group' property is set to 'true' for this chart's endpoint in @/js/endpointsConfig.js,
       // replace the retrieved data with a mutated version that is grouped according to the key.
       if (this.endpoint.xAxis.group) {
-        this.dataSource = this.groupData();
+        this.dataSource = this.groupData(this.endpoint.xAxis.key, this.dataKeys, this.dataSource);
       }
 
       // populate the labels for the x-axis according to the various values of the primary key,
@@ -146,36 +152,7 @@ export default {
         : this.drawRelative(chartData, chartOptions, chartColorsGen);
     },
 
-    // ex. for '/hourly/events,' we want to ignore the 'day' field and generate data that shows us how
-    // many events occurred at a given hour, regardless of the day. This requires significant manipulation
-    // of the original data.
-    groupData() {
-      let result = [];
-      let groups = new Set(); // ensure uniqueness of each group by collecting in a Set
-      let groupBy = this.endpoint.xAxis.key;
-      let dataKeys = this.dataKeys; // must define outside loop because VueComponent is not available inside
-      for (let obj of this.dataSource) {
-        let el;
-        let groupName = obj[groupBy];
-
-        // locate element or create if does not exist, assign to 'el'
-        if (groups.has(groupName)) {
-          el = result.find((obj) => obj[groupBy] == groupName);
-        } else {
-          groups.add(groupName);
-          el = {
-            [groupBy]: groupName,
-          };
-          result.push(el);
-        }
-
-        // sum values of duplicate fields
-        for (let k of dataKeys) {
-          el[k] = el[k] ? el[k] + parseFloat(obj[k]) : parseFloat(obj[k]);
-        }
-      }
-      return result;
-    },
+    
     // augment the passed data and options params as required for an absolute-scale chart.
     drawAbsolute(data, options, colors) {
       // simply create a dataset for each dataKey.
@@ -276,6 +253,10 @@ canvas {
         background: transparent;
         border: none;
         color: $dark-color;
+        &:hover {
+          background:transparent;
+          color:$primary-color;
+        }
       }
       .close-button,
       .grid-button {
