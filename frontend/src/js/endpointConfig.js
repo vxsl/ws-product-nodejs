@@ -4,6 +4,10 @@ module.exports = {
       title: 'Hourly Events', 
       uri: '/events/hourly',
       chartType:'bar',
+      map: {
+        domain:'hour',
+        metrics:['events']
+      },
       xAxis:{
         key:'hour',
         group:true,
@@ -23,6 +27,10 @@ module.exports = {
       title: 'Daily Events', 
       uri: '/events/daily',
       chartType:'line',
+      map: {
+        domain:'date',
+        metrics:['events']
+      },
       xAxis:{
         key:'date',
         group:false,
@@ -31,7 +39,8 @@ module.exports = {
           time: {
             unit:'day',
             displayFormats: {
-              'day':'MMM D, YYYY'
+              'day':'MMM D, YYYY',
+              'date':'MMM DD, YYYY',
             },
             parser:'YYYY-MM-DDTHH:mm:ss.SSS'
           }
@@ -42,6 +51,10 @@ module.exports = {
       title: 'Hourly Statistics', 
       uri: '/stats/hourly',
       chartType:'bar',
+      map: {
+        domain:'hour',
+        metrics:['impressions','clicks','revenue']
+      },
       xAxis:{
         key:'hour',
         group:true,
@@ -61,6 +74,10 @@ module.exports = {
       title: 'Daily Statistics', 
       uri: '/stats/daily',
       chartType:'line',
+      map: {
+        domain:'date',
+        metrics:['impressions','clicks','revenue']
+      },
       xAxis:{
         key:'date',
         group:false,
@@ -69,7 +86,8 @@ module.exports = {
           time: {
             unit:'day',
             displayFormats: {
-              'day':'MMM D, YYYY'
+              'day':'MMM D, YYYY',
+              'date':'MMM DD, YYYY',
             },
             parser:'YYYY-MM-DDTHH:mm:ss.SSS'
           }
