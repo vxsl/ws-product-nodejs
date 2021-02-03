@@ -22,14 +22,21 @@ var overallLimits = new Map()
 var individualLimits = createUserQueues(endpoints)
 
 const queryHandler = (req, res, next) => {
-  if (acceptOverall(req, res) && acceptIndividual(req, res)) {
+  if (isLocal(req) || 
+  (acceptOverall(req, res) && acceptIndividual(req, res))) {
     pool.query(req.sqlQuery).then((r) => {
       return res.json(r.rows || [])
     }).catch(next)
   }
 }
 
+isLocal = (req) => {
+  console.log(req.ip == '::1' || req.ip == '127.0.0.1')
+  return req.ip == '::1' || req.ip == '127.0.0.1' ? true : false
+}
+
 acceptIndividual = (req, res) => {
+  
   let queryLog = req.limits.get(req.ip)
   if (!queryLog || req.timestamp - queryLog[0] > config.INDIVIDUAL_WINDOW - config.LENIENCY) {
     //queryLog.set(req.ip, [req.timestamp])
