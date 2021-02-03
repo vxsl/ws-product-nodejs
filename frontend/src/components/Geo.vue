@@ -3,8 +3,8 @@
     <div class="w-100 row">
       <b-col sm='3' id="control-box">
         <b-card id="query-options">
-          <div id="blocker" v-if="loading"/>
           <span class="control-label">Select a dataset to visualize</span>
+          <div id="blocker" v-if="loading"/>
           <span
           v-for="e in endpoints" 
           :key="e.title">
@@ -22,13 +22,13 @@
               <b-form-radio-group>
                 <b-form-radio
                   v-for="(m, index) in e.map.metrics"
-                  class="btn" 
+                  class="btn monospace"
                   v-model="metricIndex"
                   ref="metricRadio"
                   :key="index"
                   :value="index"
                 >
-                  {{ m }}
+                  {{ m.toUpperCase() || '' }}
                 </b-form-radio>
               </b-form-radio-group>
             </span>
@@ -182,6 +182,7 @@ export default {
   padding-top:3em;
   padding-bottom:3em;
   border-radius:1em !important;
+  z-index:3;
   .spinner-inner-container {
     text-align:center;
     color:$dark-color  !important;
@@ -215,6 +216,7 @@ export default {
   overflow: hidden;
   padding:0;
   height:100%;
+  z-index:4;
   .map {
     height:100%;
   }
@@ -228,17 +230,18 @@ export default {
     padding-right:10%;
   font-size:0.9em;
   }
-  #blocker {
-    width:100%;
-    height:100%;
-    z-index:3;
-    opacity:0.7;
-    background:$medium-grey-color;
-    position:absolute;
-    margin-left:-10%;
-    border-top-right-radius:2em;
-    border-bottom-right-radius:2em;
-  }
+}
+#blocker {
+  width:100%;
+  height:100%;
+  z-index:2;
+  opacity:0;
+  background:$medium-grey-color;
+  position:absolute;
+  border-top-right-radius:2em;
+  border-bottom-right-radius:2em;
+  border-top-left-radius:0.3em;
+  border-bottom-left-radius:0.3em;
 }
 
 #sidebar {
