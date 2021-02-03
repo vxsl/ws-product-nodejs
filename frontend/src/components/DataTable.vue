@@ -118,13 +118,6 @@ export default {
       );
     }
   },
-  methods: {
-    parseKey(key) {
-      let parser = this.endpoint.xAxis.config.time.parser;
-      let format = this.endpoint.xAxis.config.time.displayFormats.hour;
-      return moment(key, parser).format(format);
-    },
-  },
 };
 </script>
 

@@ -1,3 +1,5 @@
+const moment = require("moment");
+
 export default {
   name:'dataOperations',
   methods: {
@@ -29,6 +31,11 @@ export default {
         }
         return result;
     }
+    parseKey(key) {
+      let parser = this.endpoint.xAxis.config.time.parser;
+      let format = this.endpoint.xAxis.config.time.displayFormats.hour;
+      return moment(key, parser).format(format);
+    },
   }
 }
 
