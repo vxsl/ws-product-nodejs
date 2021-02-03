@@ -196,7 +196,6 @@ export default {
   }
 }
 
-
 #geo-outer-container {
   width:100%;
   min-height:93vh;

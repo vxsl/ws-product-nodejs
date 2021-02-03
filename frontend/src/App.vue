@@ -43,6 +43,27 @@ export default {
   overflow-x:hidden;
 }
 
+#module-header {
+  background:$dark-grey-color;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  max-width:100vw;
+  text-align:left;
+  padding-top:1em;
+  padding-bottom:1em;
+  position:absolute;
+  top:7vh;
+  p {
+    color:$light-grey-color;
+    font-size:0.9em;
+    margin:0;
+    padding-left:3em !important;
+    padding-right:3em !important;
+  }
+}
+
 .monospace {
   font-family:'Source Code Pro', 'Courier New', Courier, monospace
 }

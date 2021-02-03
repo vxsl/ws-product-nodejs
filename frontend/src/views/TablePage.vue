@@ -1,6 +1,9 @@
 <template>
   <div>
-    <DataTableArea :endpoints="endpoints"/>
+    <b-row id="module-header" class="d-flex align-items-center padded">
+      <p>View API data in table form -- add and delete as many tables as you'd like. On the left you'll find a global search bar that queries rows from all active tables.</p>
+    </b-row>
+    <DataTableArea id="data-table-area" :endpoints="endpoints"/>
   </div>
 </template>
 
@@ -21,5 +24,9 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+#data-table-area {
+  padding-top:6em;
+  display:flex;
+}
 </style>

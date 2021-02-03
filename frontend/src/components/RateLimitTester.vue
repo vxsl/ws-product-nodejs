@@ -148,7 +148,6 @@ export default {
     },
     computed: {
         testSecondsRemaining() {
-            console.dir(this.endpoints.map(obj => obj.uri))
             let result = parseInt(this.testPeriod * (1 - (0.01 * this.testChronoProgress)) / 1000)
             if (result < 10) {
                 result = '0' + result
@@ -238,7 +237,7 @@ export default {
         makeRequest(uri) {
             let obj = this.activityRecords[uri]
             obj.reqCount++
-            axios.get(uri).then((r) => {
+            axios.get(uri + '?limit=1').then((r) => { // by default, the server does not limit requests from localhost.
                 obj.resCount++
                 r.status == 200? obj.successes++ : null
             }).catch((err) => {
