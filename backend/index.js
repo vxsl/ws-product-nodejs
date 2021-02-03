@@ -2,12 +2,11 @@
 const express = require('express')
 const pg = require('pg')
 // local imports
-const { credentials } = require('./pgCredentials')
 const { endpoints } = require('./endpoints')
 const config = require('./config')
 
 const app = express()
-const pool = new pg.Pool(credentials)
+const pool = new pg.Pool()
 
 const createUserQueues = (obj) => {
   let result = {}
