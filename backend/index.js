@@ -12,8 +12,8 @@ const pool = new pg.Pool(credentials)
 const createUserQueues = (obj) => {
   let result = {}
   for (let key in obj) {
-    let child = obj[key]
-    result[key] = typeof child == 'string' ? new Map() : createUserQueues(child) 
+    let t = typeof obj[key]
+    result[key] = t == 'string' || t == 'function' ? new Map() : createUserQueues(obj[key]) 
   }
   return result
 }
@@ -22,14 +22,25 @@ var overallLimits = new Map()
 var individualLimits = createUserQueues(endpoints)
 
 const queryHandler = (req, res, next) => {
-  if (acceptOverall(req, res) && acceptIndividual(req, res)) {
+  if (isLocal(req) || 
+  (acceptOverall(req, res) && acceptIndividual(req, res))) {
     pool.query(req.sqlQuery).then((r) => {
       return res.json(r.rows || [])
     }).catch(next)
   }
 }
 
+isLocal = (req) => {
+  if (req.ip == '::1' || req.ip == '127.0.0.1') {
+    if (!parseInt(req.query.limit)) {
+      return true
+    }
+  }
+  return false
+}
+
 acceptIndividual = (req, res) => {
+  
   let queryLog = req.limits.get(req.ip)
   if (!queryLog || req.timestamp - queryLog[0] > config.INDIVIDUAL_WINDOW - config.LENIENCY) {
     //queryLog.set(req.ip, [req.timestamp])
@@ -63,14 +74,20 @@ acceptOverall = (req, res) => {
   return true
 }
 
-app.get('/:category/:specification?', (req, res, next) => {
+app.get('/favicon.ico', (req, res) => {
+  res.status(404)
+  res.send()
+})
+
+app.get('/:category/:specification?/:poi?', (req, res, next) => {
   req.timestamp = Date.now()
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET');
   let cat = req.params.category
   let spec = req.params.specification
+  let poi = req.params.poi
   if (spec) {
-    req.sqlQuery = endpoints[cat][spec]
+    req.sqlQuery = endpoints[cat][spec](poi)
     req.limits = individualLimits[cat][spec]
   }
   else {
