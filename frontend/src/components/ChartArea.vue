@@ -11,7 +11,7 @@
         </b-button>
         <b-collapse visible id="collapse" v-model="collapseVisible">
           <div id="collapse-content">
-            <p>{{charts.length? 'Select a chart to compare with.' : 'Select a chart to begin.'}}</p>
+            <p>{{charts.length? 'Create another chart to compare with.' : 'Select an endpoint to begin.'}}</p>
             <b-button  v-for="e in endpoints" :key="e.title" @click="addChart(e)" class="m-1 btn" variant="primary">
               {{e.title}}
             </b-button>
@@ -38,6 +38,7 @@
 import ChartCard from "@/components/ChartCard.vue";
 
 export default {
+  name:'ChartArea',
   components: {
     ChartCard,
   },

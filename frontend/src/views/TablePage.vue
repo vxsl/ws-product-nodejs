@@ -1,22 +1,22 @@
 <template>
   <div>
-    <ChartArea :endpoints="endpoints"/>
+    <DataTableArea :endpoints="endpoints"/>
   </div>
 </template>
 
 <script>
-import ChartArea from '@/components/ChartArea.vue'
+import DataTableArea from '@/components/DataTableArea.vue'
 import {endpoints} from '@/js/endpointConfig.js'
 
 export default {
-  name: 'ChartsPage',
+  name: 'TablePage',
   data() {
     return {
       endpoints: endpoints
     }
   },
   components: {
-    ChartArea,
+    DataTableArea,
   },
 }
 </script>
