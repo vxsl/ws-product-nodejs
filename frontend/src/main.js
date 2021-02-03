@@ -5,8 +5,6 @@ import './plugins/bootstrap-vue'
 import App from './App.vue'
 import axios from 'axios';
 import router from './router'
-import x5GMaps from 'x5-gmaps'
-
 
 import { BIconPlusCircle, BIconXCircle, BIconThreeDots, BIconArrowDown, BIconGrid3x3, BIconGraphUp, BIconEnvelope, BIconArrowCounterclockwise } from 'bootstrap-vue'
 Vue.component('b-icon-plus-circle', BIconPlusCircle)
@@ -20,11 +18,6 @@ Vue.component('b-icon-refresh', BIconArrowCounterclockwise)
 
 Vue.config.productionTip = false
 axios.defaults.baseURL = 'http://localhost:5555'
-
-Vue.use(x5GMaps, 
-  { key: 'AIzaSyC5n1w_QbIWwUZkBgD6fVVvyN9gEDkaFAQ', 
-  libraries: ['visualization'] 
-})
 
 Vue.mixin({
   methods: {
