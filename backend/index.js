@@ -31,10 +31,9 @@ const queryHandler = (req, res, next) => {
 }
 
 isLocal = (req) => {
-  if (req.ip == '::1' || req.ip == '127.0.0.1') {
-    if (!parseInt(req.query.limit)) {
+  if (config.LOCALHOST.includes(req.ip)
+    && !parseInt(req.query.limit)) {
       return true
-    }
   }
   return false
 }
@@ -43,7 +42,6 @@ acceptIndividual = (req, res) => {
   
   let queryLog = req.limits.get(req.ip)
   if (!queryLog || req.timestamp - queryLog[0] > config.INDIVIDUAL_WINDOW - config.LENIENCY) {
-    //queryLog.set(req.ip, [req.timestamp])
     queryLog = [req.timestamp]
     req.limits.set(req.ip, [req.timestamp])
   }
