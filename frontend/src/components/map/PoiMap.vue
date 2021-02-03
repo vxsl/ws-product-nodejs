@@ -52,7 +52,6 @@ export default {
           m = p[this.dataKey]
         }
       }
-      console.log(m)
       return m
     },
     min() {
@@ -62,7 +61,6 @@ export default {
           m = p[this.dataKey]
         }
       }
-      console.log(m)
       return m
     },
     markers() {
@@ -71,7 +69,8 @@ export default {
           lat:o.poi.lat,
           lng:o.poi.lon
         },
-        intensity:parseFloat((o[this.dataKey] - this.min) / this.max) 
+        intensity:parseFloat((o[this.dataKey] - this.min) / this.max),
+        value:o[this.dataKey] 
       }))
     },
     mapConfig() {

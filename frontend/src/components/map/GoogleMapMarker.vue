@@ -21,7 +21,6 @@ export default {
       required: true
     }
   },
-
   mounted() {
     const { Marker } = this.google.maps;
 
@@ -34,8 +33,9 @@ export default {
         fillColor:colors.tertiaryColor,
         strokeWeight: 0,
         fillOpacity: 1,
-        scale: this.marker.intensity * 10
-      }
+        scale:this.marker.intensity < 0.5? 3 : this.marker.intensity * 10
+      },
+      label: parseInt(this.marker.value).toString() || this.marker.value.toString() || ''
     });
   },
 
