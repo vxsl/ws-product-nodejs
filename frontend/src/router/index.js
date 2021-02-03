@@ -12,27 +12,42 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component:Home,
+    meta: {
+      title:'🏠 Home [ws-product-node-js]'
+    }
   },
   {
     path: '/rate-limit-test',
     name: 'RateLimit',
-    component:RateLimitTestingPage
+    component:RateLimitTestingPage,
+    meta: {
+      title:'🌐 Rate Limit Tester [ws-product-node-js]'
+    }
   },
   {
     path: '/charts',
     name: 'ChartsPage',
-    component:ChartsPage
+    component:ChartsPage,
+    meta: {
+      title:'📈 Data Charts [ws-product-node-js]'
+    }
   },
   {
     path: '/table',
     name: 'TablePage',
-    component:TablePage
+    component:TablePage,
+    meta: {
+      title:'🗃️ Data Tables [ws-product-node-js]'
+    }
   },
   {
     path: '/geo',
     name: 'GeoPage',
-    component:GeoPage
+    component:GeoPage,
+    meta: {
+      title:'🌎 Geo Visualization [ws-product-node-js]'
+    }
   }
 ]
 

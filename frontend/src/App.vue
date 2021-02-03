@@ -7,10 +7,10 @@
         <a id="subtitle" class="monospace" href="https://github.com/vxsl/ws-product-nodejs">@vxsl/ws-product-nodejs</a>
       </div>
       <b-navbar-nav class="ml-auto" id="nav-links">
-        <b-nav-item class="px-2" href="/rate-limit-test">Rate Limit Testing Module</b-nav-item>
-        <b-nav-item class="px-2" href="/charts">Chart Visualizations</b-nav-item>
-        <b-nav-item class="px-2" href="/table">Data Table</b-nav-item>
-        <b-nav-item class="px-2" href="/geo">Map</b-nav-item>
+        <b-nav-item class="px-2" href="rate-limit-test">Rate Limit Testing Module</b-nav-item>
+        <b-nav-item class="px-2" href="charts">Chart Visualizations</b-nav-item>
+        <b-nav-item class="px-2" href="table">Data Table</b-nav-item>
+        <b-nav-item class="px-2" href="geo">Map</b-nav-item>
         <b-nav-item class="px-2" id="mail-link" href="mailto:hi@kylegrimsrudma.nz">
           <b-icon-envelope/>
         </b-nav-item>
@@ -23,7 +23,7 @@
 <script>
 
 export default {
-  name: 'App'
+  name: 'App',
 }
 </script>
 

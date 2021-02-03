@@ -7,10 +7,10 @@
       </span>
       <hr>
       <div id="buttons">
-        <b-button class="btn monospace" href="/rate-limit-test">1. Server-side rate limit testing and visualization</b-button>
-        <b-button class="btn monospace" href="/charts">2a(A). Client-side general chart visualizations</b-button>
-        <b-button class="btn monospace" href="/table">2a(B). Client-side data table</b-button>
-        <b-button class="btn monospace" href="/geo">2a(C). Client-side geo visualizations</b-button>
+        <b-button class="btn monospace" href="rate-limit-test">1. Server-side rate limit testing and visualization</b-button>
+        <b-button class="btn monospace" href="charts">2a(A). Client-side general chart visualizations</b-button>
+        <b-button class="btn monospace" href="table">2a(B). Client-side data table</b-button>
+        <b-button class="btn monospace" href="geo">2a(C). Client-side geo visualizations</b-button>
       </div>
       <hr>
       <a id="mail-link" href="mailto:hi@kylegrimsrudma.nz">

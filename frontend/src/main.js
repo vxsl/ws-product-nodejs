@@ -17,10 +17,13 @@ Vue.component('b-icon-envelope', BIconEnvelope)
 Vue.component('b-icon-refresh', BIconArrowCounterclockwise)
 Vue.component('b-icon-search', BIconSearch)
 
-
+router.beforeEach((to, from, next) => {
+  document.title = to.meta.title || 'ws-product-node-js'
+  next();
+})
 
 Vue.config.productionTip = false
-axios.defaults.baseURL = 'http://localhost:5555'
+axios.defaults.baseURL = 'https://api.kylegrimsrudma.nz'
 
 Vue.mixin({
   methods: {
