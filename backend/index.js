@@ -31,8 +31,12 @@ const queryHandler = (req, res, next) => {
 }
 
 isLocal = (req) => {
-  console.log(req.ip == '::1' || req.ip == '127.0.0.1')
-  return req.ip == '::1' || req.ip == '127.0.0.1' ? true : false
+  if (req.ip == '::1' || req.ip == '127.0.0.1') {
+    if (!parseInt(req.query.limit)) {
+      return true
+    }
+  }
+  return false
 }
 
 acceptIndividual = (req, res) => {
