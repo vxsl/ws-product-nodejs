@@ -36,17 +36,17 @@ export default {
       for (let obj of dataSource) {
         let groupName = obj[groupBy];
         if (result[groupName]) {
-          result[groupName] += obj[parameter]
+          result[groupName] += parseFloat(obj[parameter])
         } else {
-          result[groupName] = obj[parameter]
+          result[groupName] = parseFloat(obj[parameter])
         }
       }
       return result;
     },
-    parseKey(key) {
+    parse(key, value) {
       let parser = this.endpoint.xAxis.config.time.parser;
-      let format = this.endpoint.xAxis.config.time.displayFormats.hour;
-      return moment(key, parser).format(format);
+      let format = this.endpoint.xAxis.config.time.displayFormats[key];
+      return moment(value, parser).format(format);
     },
   }
 }
