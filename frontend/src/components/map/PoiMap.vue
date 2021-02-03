@@ -20,6 +20,7 @@
 import GoogleMapLoader from "./GoogleMapLoader";
 import GoogleMapMarker from "./GoogleMapMarker";
 import { mapSettings } from "./constants/mapSettings";
+import { getCenterOfBounds } from 'geolib';
 
 export default {
   components: {
@@ -58,7 +59,17 @@ export default {
     },
 
     mapCenter() {
-      return this.markers[1].position;
+        let result = getCenterOfBounds(this.pois.reduce((points, o) => {
+          points.push({
+            latitude:o.poi.lat,
+            longitude:o.poi.lon
+          })
+          return points
+        },[]))
+        return {
+          lat:result.latitude,
+          lng:result.longitude
+        }
     }
   }
 };
