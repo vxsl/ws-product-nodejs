@@ -34,7 +34,9 @@
         >
           <b-thead>
             <b-tr id="table-header">
-              <b-th />
+              <b-th>
+                {{domainKey}}
+              </b-th>
               <b-th v-for="key in dataKeys" :key="key">
                 {{ key }}
               </b-th>
@@ -65,6 +67,7 @@ export default {
   name: "DataTable",
   props: {
     endpoint: Object,
+    id: Number,
   },
   components: {
   },
@@ -90,7 +93,8 @@ export default {
       // determine which fields are eligible for y-axes and place these strings in dataKeys[]
       Object.keys(this.dataSource[0]).forEach(
         function (key) {
-          if (key !== this.endpoint.xAxis.key) {
+          if (key !== this.endpoint.xAxis.key
+              && !this.endpoint.exclude.includes(key)) {
             this.dataKeys.push(key);
           }
           else {
@@ -119,17 +123,18 @@ export default {
   },
   async mounted() {
     await this.init()
-    
     this.rows = this.dataSource.reduce((result, r) => {
       let arr = Object.values(r).map(v => v.toString())
-      /* result.push({
-        [this.parse(this.domainKey, arr.shift())]:arr
-      }) */
       result.push([this.parse(this.domainKey, arr.shift()).toString()].concat(arr))
       return result
     }, [])
 
-    this.$emit('loaded', this.rows)
+    this.$emit('loaded', {
+        title:this.endpoint.title,
+        rows:this.rows,
+        columns:[this.domainKey].concat(this.dataKeys),
+        id:this.id,
+    })
   },
 };
 </script>

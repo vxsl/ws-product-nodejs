@@ -3,9 +3,6 @@ const moment = require("moment");
 export default {
   name: 'dataOperations',
   methods: {
-    // ex. for '/hourly/events,' we want to ignore the 'day' field and generate data that shows us how
-    // many events occurred at a given hour, regardless of the day. This requires significant manipulation
-    // of the original data.
     groupData(groupBy, dataKeys, dataSource) {
       let result = [];
       let groups = new Set(); // ensure uniqueness of each group by collecting in a Set
@@ -25,8 +22,8 @@ export default {
         }
 
         // sum values of duplicate fields
-        for (let k of dataKeys) {
-          el[k] = el[k] ? el[k] + parseFloat(obj[k]) : parseFloat(obj[k]);
+        for (let key of dataKeys.filter(k => !this.endpoint.exclude.includes(k))) {
+          el[key] = el[key] ? el[key] + parseFloat(obj[key]) : parseFloat(obj[key]);
         }
       }
       return result;

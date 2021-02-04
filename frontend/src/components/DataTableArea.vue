@@ -11,36 +11,35 @@
           @blur="toggleSearchFocus(false)"
         />
       </div>
-      <b-table-simple class="fuzzy-results" v-if="searchString.length">
-        <b-tbody>
-          <tr v-for="row in matchingRows" :key="row">
-            <td v-for="cell in row" :key="cell">
-              {{cell}}
-            </td>
-          </tr>
-        </b-tbody>
-      </b-table-simple>
+      <FuzzyChildTable 
+        v-for="t in fuzzyChildTables"
+        :key="t.title"
+        :id="t.id"
+        :title="t.title"
+        :columns="t.columns"
+        :rows="t.rows"
+        :searchString="searchString"
+      />
     </b-col>
     <div id="tables-module" sm='6'> 
-
       <div id="endpoint-select-container">
         <div id="endpoint-select-content">
           <p>{{tables.length? 'Create another table to compare with.' : 'Select an endpoint to begin.'}}</p>
-          <b-button v-for="e in endpoints" :key="e.title" @click="addChart(e)" class="m-1 btn" variant="primary">
+          <b-button v-for="e in endpoints" :key="e.title" @click="addTable(e)" class="m-1 btn" variant="primary">
             {{e.title}}
           </b-button>
         </div>
       </div>
-      
       <div id="content-container">
         <DataTable
           v-for="table in tables"
           :key="table.id"
           :endpoint="table.endpoint"
+          :id="table.id"
           class="table-card"
           :ref="'table'+table.id"
           @loaded="addToFuzzyTable"
-          @close="deleteChart(table.id)"
+          @close="deleteTable(table.id)"
         />
         <DataTable
           v-if="!tables.length"
@@ -55,10 +54,12 @@
 <script>
 // local imports
 import DataTable from "@/components/DataTable.vue";
+import FuzzyChildTable from '@/components/FuzzyChildTable.vue';
 
 export default {
   components: {
     DataTable,
+    FuzzyChildTable
   },
   props: {
     endpoints: Array, 
@@ -70,47 +71,30 @@ export default {
       idCount:0,
       searchFocus:false,
       searchString:'',
+      fuzzyChildTables:[],
+      showFuzzy:false
     };
-  },
-  computed: {
-    matchingRows() {
-      if (this.searchString.length) {
-        try {
-          let result = []
-          for (let r of this.fuzzyTable) {
-            if (r.some(e => e.includes(this.searchString) 
-              || e.toUpperCase().includes(this.searchString.toUpperCase()))) {
-              result.push(r)
-            }
-          }
-          return result
-        }
-        catch (e) {
-          console.log(e.message)
-        }
-      }
-      return []
-    }
   },
   methods: {
     setSearchString() {
       this.searchString = this.$refs.searchBox.value
     },
-    addToFuzzyTable(rows) {
-      this.fuzzyTable = [...new Set(this.fuzzyTable.concat(rows))]
+    addToFuzzyTable(obj) {
+      if (!this.fuzzyChildTables.map(c => c.title).includes(obj.title)) {
+        this.fuzzyChildTables.push(obj)
+      }
     },
     toggleSearchFocus(v) {
       this.searchFocus = v
     },
-    addChart(e) {
+    addTable(e) {
       this.tables.unshift({
         endpoint:e,
         id:++this.idCount
       })
     },
-    deleteChart(id) {
-      let rm = this.$refs['table'+id][0].rows
-      this.fuzzyTable = this.fuzzyTable.filter(row => !rm.some(r => r == row))
+    deleteTable(id) {
+      this.fuzzyChildTables = this.fuzzyChildTables.filter(item => item.id !== id);
       this.tables = this.tables.filter(item => item.id !== id);
     }
   }
@@ -120,12 +104,6 @@ export default {
 <style lang="scss" scoped>
 @import '@/scss/custom.scss';
 
-.fuzzy-results {
-  z-index:5;
-  width:100%;
-  
-  overflow:hidden;
-}
 
 #search-container {
   border: solid;

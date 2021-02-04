@@ -4,6 +4,7 @@ module.exports = {
       title: 'Hourly Events', 
       uri: '/events/hourly',
       chartType:'bar',
+      exclude:['date'],
       map: {
         domain:'hour',
         metrics:['events']
@@ -27,6 +28,7 @@ module.exports = {
       title: 'Daily Events', 
       uri: '/events/daily',
       chartType:'line',
+      exclude:[],
       map: {
         domain:'date',
         metrics:['events']
@@ -51,6 +53,7 @@ module.exports = {
       title: 'Hourly Statistics', 
       uri: '/stats/hourly',
       chartType:'bar',
+      exclude:['date'],
       map: {
         domain:'hour',
         metrics:['impressions','clicks','revenue']
@@ -74,6 +77,7 @@ module.exports = {
       title: 'Daily Statistics', 
       uri: '/stats/daily',
       chartType:'line',
+      exclude:[],
       map: {
         domain:'date',
         metrics:['impressions','clicks','revenue']
