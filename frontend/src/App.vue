@@ -1,22 +1,28 @@
 <template>
   <div id="app" class="bg-light">
-    <b-navbar type="dark" variant="dark" id="nav" class="padded">
+    <div v-if="mobile" class="mobile-warning d-flex justify-content-center align-items-center">
       <img id="logo" src="@/assets/eqworks.svg"/>
-      <div id="logo-text" class="">
-        <a href="/">Work Sample</a>
-        <a id="subtitle" class="monospace" href="https://github.com/vxsl/ws-product-nodejs">@vxsl/ws-product-nodejs</a>
-      </div>
-      <b-navbar-nav class="ml-auto" id="nav-links">
-        <b-nav-item class="px-2" href="rate-limit-test">Rate Limit Testing Module</b-nav-item>
-        <b-nav-item class="px-2" href="charts">Chart Visualizations</b-nav-item>
-        <b-nav-item class="px-2" href="table">Data Tables</b-nav-item>
-        <b-nav-item class="px-2" href="geo">Geo</b-nav-item>
-        <b-nav-item class="px-2" id="mail-link" href="mailto:hi@kylegrimsrudma.nz">
-          <b-icon-envelope/>
-        </b-nav-item>
-      </b-navbar-nav>
-    </b-navbar>
-    <router-view/>
+      <span>Unfortunately this webapp has not yet been optimized for mobile use. Please visit again on a larger display.</span>
+    </div>
+    <div v-else>
+      <b-navbar type="dark" variant="dark" id="nav" class="padded">
+        <img id="logo" src="@/assets/eqworks.svg"/>
+        <div id="logo-text" class="">
+          <a href="/">Work Sample</a>
+          <a id="subtitle" class="monospace" href="https://github.com/vxsl/ws-product-nodejs">@vxsl/ws-product-nodejs</a>
+        </div>
+        <b-navbar-nav class="ml-auto" id="nav-links">
+          <b-nav-item class="px-2" href="rate-limit-test">Rate Limit Testing Module</b-nav-item>
+          <b-nav-item class="px-2" href="charts">Chart Visualizations</b-nav-item>
+          <b-nav-item class="px-2" href="table">Data Tables</b-nav-item>
+          <b-nav-item class="px-2" href="geo">Geo</b-nav-item>
+          <b-nav-item class="px-2" id="mail-link" href="mailto:hi@kylegrimsrudma.nz">
+            <b-icon-envelope/>
+          </b-nav-item>
+        </b-navbar-nav>
+      </b-navbar>
+      <router-view/>
+    </div>
   </div>
 </template>
 
@@ -24,11 +30,33 @@
 
 export default {
   name: 'App',
+  computed: {
+    mobile() {
+      return screen.width <= 760
+    },
+  }
 }
 </script>
 
 <style lang="scss">
 @import '@/scss/custom.scss';
+
+.mobile-warning {
+  background:$dark-color;
+  color:$light-color;
+  flex-direction:column;
+  width:100vw;
+  height:100vh;
+  #logo {
+    width:5em;
+    display:block;
+    filter:invert(100%);
+    margin:2em;
+  }
+  span {
+    width:60%
+  }
+}
 
 #app {
   font-family: Roboto, Helvetica, Arial, sans-serif;
