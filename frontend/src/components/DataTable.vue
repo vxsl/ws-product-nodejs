@@ -2,9 +2,10 @@
   <div id="outer-container">
     <div id="right-column" cols=9>
       <b-row class="table-header">
-        <b-col>
-          <span class="table-title">{{ endpoint.title }}</span>
+        <b-col cols=8>
+          <span>{{ endpoint.title }}</span>
           <span class="monospace table-subtitle">{{ endpoint.uri }}</span>
+          <span class="table-description" v-if="endpoint.description">{{ endpoint.description }}</span>
         </b-col>
         <b-col class="d-flex justify-content-end align-items-center">
           <b-button
@@ -156,9 +157,15 @@ export default {
       * {
         display: block;
       }
+      .table-subtitle {
+        font-size:0.9em
+      }
+      .table-description {
+        font-size:0.8em
+      }
       margin-bottom: 1em;
     }
-    
+
     #table-container {
       border-radius: 1em;
       border-bottom-right-radius: 0;

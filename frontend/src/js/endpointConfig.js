@@ -2,6 +2,7 @@ module.exports = {
   endpoints: [
     {
       title: 'Hourly Events', 
+      description:'Total events per hour over all dates',
       uri: '/events/hourly',
       chartType:'bar',
       exclude:['date'],
@@ -27,6 +28,7 @@ module.exports = {
     { 
       title: 'Daily Events', 
       uri: '/events/daily',
+      description:'',
       chartType:'line',
       exclude:[],
       map: {
@@ -51,6 +53,7 @@ module.exports = {
     },
     { 
       title: 'Hourly Statistics', 
+      description:'Total hourly statistics over all dates',
       uri: '/stats/hourly',
       chartType:'bar',
       exclude:['date'],
@@ -74,7 +77,8 @@ module.exports = {
       } 
     },
     { 
-      title: 'Daily Statistics', 
+      title: 'Daily Statistics',
+      description:'', 
       uri: '/stats/daily',
       chartType:'line',
       exclude:[],

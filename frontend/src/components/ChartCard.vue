@@ -5,6 +5,7 @@
         <b-col>
           <span class="chart-title">{{ endpoint.title }}</span>
           <span class="monospace chart-subtitle">{{ endpoint.uri }}</span>
+          <span class="chart-description" v-if="endpoint.description">{{ endpoint.description }}</span>
         </b-col>
         <b-col class="d-flex justify-content-end align-items-center">
           <b-button
@@ -235,6 +236,12 @@ canvas {
     padding: 3em;
     padding-top: 1.5em;
     .chart-header {
+      .chart-subtitle {
+        font-size:0.9em
+      }
+      .chart-description {
+        font-size:0.8em
+      }
       text-align: left;
       * {
         display: block;
